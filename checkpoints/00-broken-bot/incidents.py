@@ -3,11 +3,29 @@
 # run; the details change (temperature 1.0, no output contract). That the same
 # ticket gets different wording and different refund amounts each run is
 # incident #8 ("same ticket, different resolutions") demonstrating itself.
+#
+# Instructor's key: demo letter -> capstone incident numbers -> where it's fixed.
+#   A  #1 invalid schema, #3 partial failures streamed, #4 retries not
+#      effective, #10 nobody can debug -> 01-triage (structured output, one
+#      repair re-prompt, request-ID logs) and 02-service (streaming contract).
+#   B  #2 generic apology instead of an answer -> 02-service (code looks the
+#      order up before planning).
+#   C  #6 refund larger than the order total -> 02-service (rules.py caps the
+#      refund at the order total; a human approves anything above $50).
+# The order ids are real records in shared/mock_order_api/orders_seed.json, so
+# the "right answers" quoted below are what 02-service's lookup returns. v1
+# never asks.
 
 import traceback
 
+# Importing bot builds its LLM client and reads the policies from a path
+# relative to the current directory, so run this from checkpoints/00-broken-bot
+# with a real key in .env. There is no offline mode.
 import bot
 
+# (title, what to watch, ticket text). Each ticket is written to trigger one
+# failure: A asks for a long answer to overflow max_tokens, B asks a question
+# only the order system can answer, C quotes a price ten times the real one.
 INCIDENTS = [
     (
         "Incident A — cut-off JSON, three useless retries",
@@ -53,10 +71,15 @@ def main():
         print(title)
         print(what_to_watch)
         print("=" * 72)
+        # bot.resolve() swallows its own exceptions and returns None, so this
+        # rarely fires. One way in: plan.get() below meeting a non-empty JSON
+        # list or string instead of an object, because v1 never checks the shape.
         try:
             plan = bot.resolve(ticket_text)
             print("\nRESOLUTION:", plan)
             # what bot.main() does next with this plan
+            # The three branches are v1's whole decision logic: give up
+            # silently, pay whatever the model said, or call the text done.
             if plan is None:
                 print("-> v1 records nothing. No error, no log line, no ticket update.")
             elif plan.get("refund_amount"):
