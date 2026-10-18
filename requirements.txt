@@ -1,0 +1,44 @@
+# Provider SDKs. Checkpoints 00-01 call them directly; 02+ reach them through LangChain.
+# openai stays on 2.x: ragas needs instructor, which pins jiter<0.15, and openai
+# 3.x needs jiter>=0.16. langchain-openai 1.6 accepts openai>=2.45.
+openai>=2.45,<3
+anthropic>=1.0
+# LangChain: the provider boundary from checkpoint 02 on. Pinned to the 1.x line,
+# because the APIs moved at 1.0.
+langchain-core>=1.0,<2
+langchain-openai>=1.0,<2
+langchain-anthropic>=1.0,<2
+# langchain itself is only used by checkpoint 02's agent_demo.py (create_agent,
+# the prebuilt agent). Deskhand's own code never imports it.
+langchain>=1.0,<2
+# LangGraph: the second workflow runtime in checkpoint 02 (DESKHAND_RUNTIME=langgraph)
+# and the only one from checkpoint 03 on. SQLite checkpointer for durable runs.
+langgraph>=1.2,<2
+langgraph-checkpoint-sqlite>=3.1,<4
+# Retrieval on LangChain from checkpoint 03: the ## section splitter and the
+# Qdrant vector store (local mode, no server).
+langchain-text-splitters>=1.1,<2
+langchain-qdrant>=1.1,<2
+# RAGAS: retrieval metrics in evals/rag_evals.py (checkpoints 03 and 04).
+# ragas 0.4 still imports ChatVertexAI from langchain-community, which 0.4.2
+# removed, so langchain-community is held at 0.4.1.
+ragas>=0.4.3,<0.5
+langchain-community==0.4.1
+# DeepEval: the release gate's metrics and reply judge in checkpoint 04
+# (evals/metrics.py, evals/judge.py, evals/test_golden.py). It caps click<8.4,
+# which holds huggingface-hub (via ragas -> datasets) on the 1.x line.
+deepeval>=4.2.8,<5
+# NeMo Guardrails: checkpoint 04's switchable input guard (DESKHAND_GUARD=nemo,
+# guardrails_nemo.py + rails/). Imported lazily; nothing else uses it. Its base
+# install declares no LangChain pins, so it sits beside the 1.x line above.
+nemoguardrails>=0.24.1,<0.25
+tiktoken
+pydantic>=2.7
+fastapi
+uvicorn[standard]
+httpx
+qdrant-client
+pytest
+python-dotenv
+rich
+sse-starlette

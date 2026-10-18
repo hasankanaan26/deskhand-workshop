@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+dist/
+build/
+
+# Secrets
+.env
+
+# Local state
+*.db
+*.db-shm
+*.db-wal
+qdrant_data/
+logs/
+checkpoints/*/evals/*results.json
+# run_evals.py --only writes here (a subset, never the release gate)
+checkpoints/*/evals/results.subset.json
+# DeepEval's cache and test-run files (its pytest plugin creates the folder)
+.deepeval/
+node_modules/
+
+# Office lock files
+~$*
+
+fallbacks/
+
