@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 01: What Changed, and What Didn't</title>
+<link rel="stylesheet" href="deck.css">
+<script src="deck.js" defer></script>
+</head>
+<body>
+<main class="deck">
+
+<section class="slide lead">
+  <h1>What Changed, and What Didn't</h1>
+  <p class="subtitle">What an LLM really is, what it costs, how slow it is, and the broken bot you now own</p>
+  <p class="session-meta">Session 1 · Week 1 · Monday, October 19, 2026</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Today</span>By the end of today you can…</h2>
+  <ol>
+    <li>Say what an LLM does in <strong>one sentence</strong>.</li>
+    <li>Estimate what a prompt <strong>costs</strong>.</li>
+    <li>Explain why a chatbot "forgets", and why long chats get expensive.</li>
+    <li>Pick a <strong>temperature</strong> for a task.</li>
+    <li>Time your calls and log each one with a <code>request_id</code>.</li>
+  </ol>
+  <div class="callout info" data-label="How today works"><p>No typing in class. You predict before every run, vote with your fingers, and tell me what to try next. Everything you watch runs at home tonight from the repo.</p></div>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">The story</span>You just inherited a broken support bot</h2>
+  <ul>
+    <li>You're the new AI team at <strong>Nimbus Electronics</strong>, an online store.</li>
+    <li>The last team built <strong>Deskhand v1</strong>: a bot that reads support tickets and decides what to do.</li>
+    <li>In production it caused <strong>10 incidents</strong>. Over 4 weeks you fix them all. It's also your capstone.</li>
+  </ul>
+  <div class="callout example" data-label="A real ticket: T-1001">
+    <p>"I ordered the wireless headphones two weeks ago, order #48291. They arrived with a cracked case. I want a refund or a replacement…"</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Deskhand v1</span>How the broken bot works</h2>
+  <div class="figure">
+  <svg viewBox="0 0 1080 250" width="1040" height="241" role="img" aria-label="Deskhand v1 pipeline with a flaw under each step">
+    <defs>
+      <marker id="arrV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#01d294"/>
+      </marker>
+    </defs>
+    <g font-family="Segoe UI, sans-serif" font-size="18" fill="#eef6f3" text-anchor="middle">
+      <rect x="8" y="30" width="176" height="74" rx="10" fill="#2e2a14" stroke="#ffc53d"/>
+      <text x="96" y="62">Ticket +</text>
+      <text x="96" y="86">all 6 policies</text>
+      <rect x="230" y="30" width="176" height="74" rx="10" fill="#0d3029" stroke="#01d294"/>
+      <text x="318" y="62">One big</text>
+      <text x="318" y="86">prompt</text>
+      <rect x="452" y="30" width="176" height="74" rx="10" fill="#251f3d" stroke="#b99cff"/>
+      <text x="540" y="62" fill="#b99cff">The model</text>
+      <text x="540" y="86" font-size="15" fill="#9db5b1">(an API call)</text>
+      <rect x="674" y="30" width="176" height="74" rx="10" fill="#0d3029" stroke="#01d294"/>
+      <text x="762" y="62">Read the text</text>
+      <text x="762" y="86">as JSON</text>
+      <rect x="896" y="30" width="176" height="74" rx="10" fill="#0d3029" stroke="#01d294"/>
+      <text x="984" y="62">"Refund</text>
+      <text x="984" y="86">issued!"</text>
+      <line x1="184" y1="67" x2="222" y2="67" stroke="#01d294" stroke-width="2.5" marker-end="url(#arrV)"/>
+      <line x1="406" y1="67" x2="444" y2="67" stroke="#01d294" stroke-width="2.5" marker-end="url(#arrV)"/>
+      <line x1="628" y1="67" x2="666" y2="67" stroke="#01d294" stroke-width="2.5" marker-end="url(#arrV)"/>
+      <line x1="850" y1="67" x2="888" y2="67" stroke="#01d294" stroke-width="2.5" marker-end="url(#arrV)"/>
+      <g font-size="16" fill="#ff7a7a">
+        <text x="96" y="138">95% of it is policy</text>
+        <text x="96" y="160">text it doesn't need</text>
+        <text x="318" y="138">"Be generous, we</text>
+        <text x="318" y="160">want happy customers!"</text>
+        <text x="540" y="138">randomness</text>
+        <text x="540" y="160">turned all the way up</text>
+        <text x="762" y="138">crashes if the reply</text>
+        <text x="762" y="160">isn't perfect JSON</text>
+        <text x="984" y="138">nobody checks the</text>
+        <text x="984" y="160">amount vs. the order</text>
+      </g>
+      <text x="540" y="214" font-size="16" fill="#9db5b1">…and the customer watches the raw text appear live. No logs. If anything fails: retry the same thing, then give up.</text>
+    </g>
+  </svg>
+  </div>
+  <p class="small muted">The code: <code>checkpoints/00-broken-bot/bot.py</code>, about 80 lines. It looks like most LLM tutorials on the internet.</p>
+</section>
+
+<section class="slide demo">
+  <h2><span class="kicker">Live demo</span>Three tickets, three ways to fail</h2>
+  <div class="cards">
+    <div class="card">
+      <h4>Ticket A</h4>
+      <p>An angry customer wants "every single step" written out.</p>
+      <p>→ the answer is cut off mid-JSON, the identical retry is cut off too, three times. Then it returns nothing.</p>
+    </div>
+    <div class="card">
+      <h4>Ticket B</h4>
+      <p>"hi, where is my charger? order O-72455…"</p>
+      <p>→ "Let me check the shipping status for you!" It can't. That was the whole answer.</p>
+    </div>
+    <div class="card bad">
+      <h4>Ticket C</h4>
+      <p>A $24.99 Final Sale band. The customer says they paid <strong>$249.99</strong>.</p>
+      <p>→ a $249.99 refund. Nothing checks it.</p>
+    </div>
+  </div>
+  <p>Before each ticket runs: say out loud what you think the bot will do. The wording changes from run to run.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">The lesson</span>The scariest failures look correct</h2>
+  <div class="cards">
+    <div class="card">
+      <h4>Visible failure (ticket A)</h4>
+      <p>Three cut-off replies on screen. Ugly, but <strong>you can see</strong> something broke.</p>
+    </div>
+    <div class="card bad">
+      <h4>Quiet failure (ticket C)</h4>
+      <p>Perfect JSON: <code>{"refund_amount": 249.99}</code>. Polite, confident, wrong, and the money is gone.</p>
+    </div>
+  </div>
+  <div class="callout analogy">
+    <p>A SQL query with a typo crashes, and you find it. A query with the wrong <code>WHERE</code> clause returns real-looking wrong rows, and it ships.</p>
+  </div>
+</section>
+
+<section class="slide scoreboard">
+  <h2><span class="kicker">The scoreboard</span>Deskhand v1: the 10-problem incident list</h2>
+  <ol class="two-col">
+    <li>Sometimes it returns invalid resolution schemas.</li>
+    <li>Sometimes it sends customers a generic LLM apology instead of an answer.</li>
+    <li>Sometimes partial failures are streamed to the support agent's screen.</li>
+    <li>Retries are not always effective.</li>
+    <li>The order-lookup API may fail, time out, or return inconsistent data.</li>
+    <li>It once suggested a refund larger than the order total.</li>
+    <li>Costs spike on long ticket threads.</li>
+    <li>The same ticket can produce different resolutions.</li>
+    <li>A crash after issuing a refund left the ticket unresolved, and a retry refunded twice.</li>
+    <li>Nobody can debug why a specific run failed.</li>
+  </ol>
+  <p class="small muted">This list goes on the wall. We cross items off as we fix them, every week.</p>
+</section>
+
+<section class="slide lead">
+  <h1>Part 1 · What is this machine?</h1>
+  <p class="subtitle">One sentence that explains most of the failures you just saw</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">The big picture</span>What changed, and what didn't</h2>
+  <div class="cards">
+    <div class="card">
+      <h4>What changed</h4>
+      <p><strong>2019:</strong> label thousands of tickets, train a model, keep a specialist team. Weeks.</p>
+      <p><strong>Today:</strong> one API call and a paragraph of instructions. An afternoon.</p>
+    </div>
+    <div class="card">
+      <h4>What didn't</h4>
+      <p>The API can be slow, down, or wrong.</p>
+      <p>Every call costs money.</p>
+      <p>You still need tests and logs.</p>
+    </div>
+  </div>
+  <p>That's <strong>software engineering</strong>, and it's still your job.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">The one sentence</span>An LLM predicts the next word. That's it.</h2>
+  <div class="figure">
+  <svg viewBox="0 0 1080 190" width="1040" height="183" role="img" aria-label="Next-word prediction diagram">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#01d294"/>
+      </marker>
+    </defs>
+    <g font-family="Cascadia Code, Consolas, monospace" font-size="19" fill="#eef6f3">
+      <rect x="30" y="60" width="430" height="70" rx="10" fill="#2e2a14" stroke="#ffc53d"/>
+      <text x="55" y="102">The customer wants a</text>
+      <rect x="530" y="60" width="180" height="70" rx="10" fill="#251f3d" stroke="#b99cff"/>
+      <text x="572" y="90" font-family="Segoe UI, sans-serif" fill="#b99cff">the model</text>
+      <text x="548" y="115" font-family="Segoe UI, sans-serif" font-size="15" fill="#9db5b1">scores every word</text>
+      <line x1="460" y1="95" x2="522" y2="95" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr2)"/>
+      <line x1="710" y1="95" x2="772" y2="95" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr2)"/>
+      <g font-size="18">
+        <text x="790" y="45" fill="#b4f05a">refund      62%</text>
+        <text x="790" y="80" fill="#eef6f3">replacement 24%</text>
+        <text x="790" y="115" fill="#9db5b1">discount     9%</text>
+        <text x="790" y="150" fill="#9db5b1">unicorn      0.001%</text>
+      </g>
+    </g>
+  </svg>
+  </div>
+  <div class="callout plain">
+    <p>An <strong>LLM</strong> (large language model) is a program trained on a huge amount of text. Given some text, it scores every possible next word, picks one, and <strong>repeats</strong>. Like your phone's autocomplete, scaled up enormously.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">The one sentence</span>Watch it write, one piece at a time</h2>
+  <div class="figure">
+  <svg viewBox="0 0 1080 250" width="1040" height="241" role="img" aria-label="The model appending one token per step">
+    <g font-family="Cascadia Code, Consolas, monospace" font-size="20" fill="#9db5b1">
+      <text x="20" y="40" font-family="Segoe UI, sans-serif" font-size="16" fill="#01d294">step 1</text>
+      <text x="110" y="40">The customer wants a <tspan fill="#b4f05a">refund</tspan></text>
+      <text x="20" y="90" font-family="Segoe UI, sans-serif" font-size="16" fill="#01d294">step 2</text>
+      <text x="110" y="90">The customer wants a refund <tspan fill="#b4f05a">for</tspan></text>
+      <text x="20" y="140" font-family="Segoe UI, sans-serif" font-size="16" fill="#01d294">step 3</text>
+      <text x="110" y="140">The customer wants a refund for <tspan fill="#b4f05a">the</tspan></text>
+      <text x="20" y="190" font-family="Segoe UI, sans-serif" font-size="16" fill="#01d294">step 4</text>
+      <text x="110" y="190">The customer wants a refund for the <tspan fill="#b4f05a">cracked</tspan></text>
+      <text x="110" y="236" font-family="Segoe UI, sans-serif" font-size="17">…each step re-reads everything so far, adds one piece, and stops when it predicts "end".</text>
+    </g>
+  </svg>
+  </div>
+  <p>Every reply is written <strong>one token at a time</strong>. That's why answers appear word by word, and why long answers take longer.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">So what?</span>Four consequences of "predict the next token"</h2>
+  <div class="cards">
+    <div class="card">
+      <h4>Sounds right, isn't</h4>
+      <p>Confident, made-up answers.</p>
+      <p class="muted">v1: a refund above the order total</p>
+    </div>
+    <div class="card">
+      <h4>Looks nothing up</h4>
+      <p>Knows nothing about <em>your</em> orders.</p>
+      <p class="muted">v1: can't know O‑46633 cost $24.99</p>
+    </div>
+    <div class="card">
+      <h4>JSON is just text</h4>
+      <p>Sometimes it isn't valid JSON.</p>
+      <p class="muted">v1: ticket A's JSON was cut off</p>
+    </div>
+    <div class="card">
+      <h4>Starts from zero</h4>
+      <p>No memory between calls.</p>
+      <p class="muted">v1: re-sends all 6 policies</p>
+    </div>
+  </div>
+  <p>These aren't bugs the provider will fix. They come from <strong>how the machine works</strong>, so your code has to handle them.</p>
+</section>
+
+<section class="slide check">
+  <h2><span class="kicker">Quick check</span>Predict what happens</h2>
+  <blockquote>A customer writes to Deskhand v1: <em>"Where is my order O-48291? When will it arrive?"</em></blockquote>
+  <p>What does the bot answer?</p>
+  <ol class="small">
+    <li>"I don't have access to order information."</li>
+    <li>A confident, specific, made-up answer: <em>"Your order shipped yesterday and will arrive Thursday."</em></li>
+    <li>It looks up the order and gives the real status.</li>
+  </ol>
+  <p class="small muted">Vote with your fingers: 1, 2 or 3.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Tokens</span>What the model actually reads</h2>
+  <div class="figure">
+  <svg viewBox="0 0 1080 112" width="1040" height="108" role="img" aria-label="A sentence split into 10 tokens">
+    <g font-family="Cascadia Code, Consolas, monospace" font-size="22" fill="#eef6f3" text-anchor="middle">
+    <rect x="166" y="10" width="42" height="50" rx="8" fill="#0d3029" stroke="#24413f"/>
+    <text x="187" y="43">I</text>
+    <rect x="218" y="10" width="84" height="50" rx="8" fill="#112a45" stroke="#24413f"/>
+    <text x="260" y="43">want</text>
+    <rect x="312" y="10" width="42" height="50" rx="8" fill="#0d3029" stroke="#24413f"/>
+    <text x="333" y="43">a</text>
+    <rect x="364" y="10" width="112" height="50" rx="8" fill="#112a45" stroke="#24413f"/>
+    <text x="420" y="43">refund</text>
+    <rect x="486" y="10" width="70" height="50" rx="8" fill="#0d3029" stroke="#24413f"/>
+    <text x="521" y="43">for</text>
+    <rect x="566" y="10" width="98" height="50" rx="8" fill="#112a45" stroke="#24413f"/>
+    <text x="615" y="43">order</text>
+    <rect x="674" y="10" width="42" height="50" rx="8" fill="#2e2a14" stroke="#ffc53d"/>
+    <text x="695" y="43">O</text>
+    <rect x="726" y="10" width="42" height="50" rx="8" fill="#2e2a14" stroke="#ffc53d"/>
+    <text x="747" y="43">-</text>
+    <rect x="778" y="10" width="70" height="50" rx="8" fill="#2e2a14" stroke="#ffc53d"/>
+    <text x="813" y="43">482</text>
+    <rect x="858" y="10" width="56" height="50" rx="8" fill="#2e2a14" stroke="#ffc53d"/>
+    <text x="886" y="43">91</text>
+    <path d="M674 66 v8 H914 v-8" fill="none" stroke="#ffc53d" stroke-width="2"/>
+    <text x="794" y="100" font-family="Segoe UI, sans-serif" font-size="18" fill="#ffc53d">one order ID = 4 tokens</text>
+    <text x="166" y="100" text-anchor="start" font-family="Segoe UI, sans-serif" font-size="18" fill="#9db5b1">7 words → 10 tokens</text>
+    </g></svg>
+  </div>
+  <div class="callout plain">
+    <p>A <strong>token</strong> is a piece of text: a word, part of a word, or a symbol. Models read, write and charge in tokens. 1 token ≈ ¾ of an English word.</p>
+  </div>
+  <p>Capitals, prices and IDs cost more: <code>REFUND</code> is 2 tokens, <code>$24.99</code> is 4.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Context window</span>The model's desk</h2>
+  <div class="callout analogy">
+    <p>The <strong>context window</strong> is everything the model can see in one call: instructions, documents, the conversation, and the answer it's writing. Think of a desk: a fixed size, wiped after every call, and you pay for everything on it.</p>
+  </div>
+  <div class="callout example" data-label="Ticket T-1001 in Deskhand v1">
+    <p>The whole desk: <strong>2,431 tokens</strong>. The customer's message: <strong>47</strong> of them, about 2%. The other 98% is instructions and policies, paid for on every ticket.</p>
+  </div>
+  <p class="small">gpt-4.1-mini's desk holds about 1 million tokens, about eight 300-page books.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Context window</span>Then how does ChatGPT "remember"?</h2>
+  <div class="callout analogy">
+    <p>It doesn't. The app <strong>re-sends the whole conversation</strong> on every turn, like an HTTP API with no sessions where every request carries the full history in its body.</p>
+  </div>
+  <table>
+    <tr><th>Turn</th><th>What gets sent to the model</th><th>Tokens sent</th></tr>
+    <tr><td>1</td><td>instructions + policies + message 1</td><td>2,400</td></tr>
+    <tr><td>2</td><td>instructions + policies + message 1 + reply 1 + message 2</td><td>2,600</td></tr>
+    <tr><td>9</td><td>…everything so far</td><td>4,000</td></tr>
+    <tr><td colspan="2"><strong>Total for a 9-turn thread</strong></td><td><strong>28,800</strong>, 12× a single call</td></tr>
+  </table>
+  <p class="small">This is incident <strong>#7</strong>: <em>"costs spike on long ticket threads."</em> Nobody wrote a bug. The bill grows because of how the machine works.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Temperature</span>How the next token gets picked</h2>
+  <div class="callout plain">
+    <p><strong>Temperature</strong> is a number you send with each call: how random the pick is. Here the model is completing <code>Resolution: issue a ___</code>.</p>
+  </div>
+  <div class="figure">
+  <svg viewBox="0 0 1080 250" width="900" height="208" role="img" aria-label="Next-token probabilities at three temperatures">
+    <g font-family="Segoe UI, sans-serif" font-size="18" fill="#eef6f3">
+    <rect x="10" y="8" width="340" height="232" rx="12" fill="#0d3029" stroke="#01d294"/>
+    <text x="180" y="40" text-anchor="middle" font-size="22" fill="#01d294">temperature 0</text>
+    <text x="26" y="84" fill="#9db5b1">refund</text>
+    <rect x="135" y="68" width="145" height="22" rx="3" fill="#b4f05a"/>
+    <text x="288" y="84" font-size="19">100%</text>
+    <text x="26" y="126" fill="#9db5b1">replacement</text>
+    <rect x="135" y="110" width="2" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="145" y="126" font-size="19">0%</text>
+    <text x="26" y="168" fill="#9db5b1">store credit</text>
+    <rect x="135" y="152" width="2" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="145" y="168" font-size="19">0%</text>
+    <text x="26" y="210" fill="#9db5b1">apology</text>
+    <rect x="135" y="194" width="2" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="145" y="210" font-size="19">0%</text>
+    <rect x="370" y="8" width="340" height="232" rx="12" fill="#2e2a14" stroke="#ffc53d"/>
+    <text x="540" y="40" text-anchor="middle" font-size="22" fill="#ffc53d">temperature 1.0</text>
+    <text x="386" y="84" fill="#9db5b1">refund</text>
+    <rect x="495" y="68" width="90" height="22" rx="3" fill="#b4f05a"/>
+    <text x="593" y="84" font-size="19">62%</text>
+    <text x="386" y="126" fill="#9db5b1">replacement</text>
+    <rect x="495" y="110" width="35" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="538" y="126" font-size="19">24%</text>
+    <text x="386" y="168" fill="#9db5b1">store credit</text>
+    <rect x="495" y="152" width="14" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="517" y="168" font-size="19">10%</text>
+    <text x="386" y="210" fill="#9db5b1">apology</text>
+    <rect x="495" y="194" width="6" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="509" y="210" font-size="19">4%</text>
+    <rect x="730" y="8" width="340" height="232" rx="12" fill="#3a1c1f" stroke="#ff7a7a"/>
+    <text x="900" y="40" text-anchor="middle" font-size="22" fill="#ff7a7a">temperature 1.5</text>
+    <text x="746" y="84" fill="#9db5b1">refund</text>
+    <rect x="855" y="68" width="72" height="22" rx="3" fill="#b4f05a"/>
+    <text x="935" y="84" font-size="19">50%</text>
+    <text x="746" y="126" fill="#9db5b1">replacement</text>
+    <rect x="855" y="110" width="39" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="902" y="126" font-size="19">27%</text>
+    <text x="746" y="168" fill="#9db5b1">store credit</text>
+    <rect x="855" y="152" width="22" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="885" y="168" font-size="19">15%</text>
+    <text x="746" y="210" fill="#9db5b1">apology</text>
+    <rect x="855" y="194" width="12" height="22" rx="3" fill="#6f8f8a"/>
+    <text x="875" y="210" font-size="19">8%</text>
+    </g></svg>
+  </div>
+  <p>Deskhand v1 uses <code>temperature=1.0</code>: the same ticket gets different answers. That's incident <strong>#8</strong>.</p>
+</section>
+
+<section class="slide check">
+  <h2><span class="kicker">Quick check</span>Pick a temperature: 0 or ~1?</h2>
+  <ol>
+    <li>Sort a ticket into <code>refund</code> / <code>shipping</code> / <code>warranty</code>.</li>
+    <li>Pull the order ID out of a customer's message.</li>
+    <li>Write 5 different subject lines for a "sorry for the delay" email campaign.</li>
+    <li>Decide how much money to refund.</li>
+  </ol>
+  <p class="small muted">Rule of thumb: <strong>0 when a program reads the output</strong>. Higher only when you want variety for a human to choose from.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Capability map</span>What to trust it with</h2>
+  <div class="cards">
+    <div class="card good">
+      <h4>Good at</h4>
+      <p>Classify, extract, summarise, rewrite.</p>
+      <p><em>"A refund request, and the customer is angry."</em></p>
+      <p><strong>Use it.</strong></p>
+    </div>
+    <div class="card">
+      <h4>Fakes convincingly</h4>
+      <p>Your business's facts, exact maths, citations.</p>
+      <p><em>"Our refund window is 30 days."</em> (it's 14)</p>
+      <p><strong>Use it, then check it.</strong></p>
+    </div>
+    <div class="card bad">
+      <h4>Can't do at all</h4>
+      <p>Live data, memory of past calls, actions.</p>
+      <p><em>"I've refunded you $24.99."</em> (it can't)</p>
+      <p><strong>Give it tools. Code decides.</strong></p>
+    </div>
+  </div>
+  <p>The middle one is the dangerous one: fluent, confident, wrong.</p>
+</section>
+
+<section class="slide lead">
+  <h1>Part 2 · Cost, speed, and where the model sits</h1>
+  <p class="subtitle">The limits that decide whether an AI feature is a product or a demo</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Cost</span>The arithmetic of one call</h2>
+  <pre><code>cost = input tokens  × input price      <span class="comment"># what you send</span>
+     + output tokens × output price     <span class="comment"># what the model writes; prices are per 1 million tokens</span></code></pre>
+  <table>
+    <tr><th>Deskhand v1, ticket T-1001, on gpt-4.1-mini</th><th>Tokens</th><th>Price per 1M</th><th>Cost</th></tr>
+    <tr><td>Input: instructions + 6 policies + ticket</td><td>2,431</td><td>$0.40</td><td>$0.00097</td></tr>
+    <tr><td>Output: the JSON answer</td><td>~150</td><td>$1.60</td><td>$0.00024</td></tr>
+    <tr><td><strong>One call</strong></td><td></td><td></td><td><strong>≈ $0.0012</strong></td></tr>
+  </table>
+  <p>Output costs <strong>4×</strong> input. One call is a tenth of a cent. Next: how it becomes 90 cents.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Cost</span>How a $0.001 call becomes a $0.90 resolution</h2>
+  <table>
+    <tr><th>Change</th><th>Why teams do it</th><th>Per ticket</th></tr>
+    <tr><td>Deskhand v1: 1 call, small model</td><td>(the starting point)</td><td>$0.0012</td></tr>
+    <tr><td>A bigger model (gpt-4.1)</td><td>"answers are better"</td><td>$0.006</td></tr>
+    <tr><td>An agent: 12 calls, ~30,000 tokens each</td><td>"so it can look things up"</td><td>$0.77</td></tr>
+    <tr><td>1 run in 5 retried from the start</td><td>"it's flaky"</td><td><span class="bad"><strong>$0.92</strong></span></td></tr>
+  </table>
+  <div class="callout watch">
+    <p>$0.90 of tokens on a $12 order is a broken product, and every step looked reasonable. Measure cost per <strong>successful</strong> resolution, retries included.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Latency</span>Calls take seconds, and some take much longer</h2>
+  <div class="figure">
+  <svg viewBox="0 0 1080 280" width="1040" height="270" role="img" aria-label="20 latencies sorted, average versus p95">
+    <g font-family="Segoe UI, sans-serif" font-size="16" fill="#9db5b1">
+    <rect x="60" y="198" width="38" height="38" rx="4" fill="#35524f"/>
+    <text x="79" y="258" text-anchor="middle" font-size="14">1</text>
+    <rect x="110" y="196" width="38" height="40" rx="4" fill="#35524f"/>
+    <text x="129" y="258" text-anchor="middle" font-size="14">2</text>
+    <rect x="160" y="194" width="38" height="42" rx="4" fill="#35524f"/>
+    <text x="179" y="258" text-anchor="middle" font-size="14">3</text>
+    <rect x="210" y="192" width="38" height="44" rx="4" fill="#35524f"/>
+    <text x="229" y="258" text-anchor="middle" font-size="14">4</text>
+    <rect x="260" y="191" width="38" height="45" rx="4" fill="#35524f"/>
+    <text x="279" y="258" text-anchor="middle" font-size="14">5</text>
+    <rect x="310" y="190" width="38" height="46" rx="4" fill="#35524f"/>
+    <text x="329" y="258" text-anchor="middle" font-size="14">6</text>
+    <rect x="360" y="189" width="38" height="47" rx="4" fill="#35524f"/>
+    <text x="379" y="258" text-anchor="middle" font-size="14">7</text>
+    <rect x="410" y="188" width="38" height="48" rx="4" fill="#35524f"/>
+    <text x="429" y="258" text-anchor="middle" font-size="14">8</text>
+    <rect x="460" y="187" width="38" height="49" rx="4" fill="#35524f"/>
+    <text x="479" y="258" text-anchor="middle" font-size="14">9</text>
+    <rect x="510" y="185" width="38" height="51" rx="4" fill="#35524f"/>
+    <text x="529" y="258" text-anchor="middle" font-size="14">10</text>
+    <rect x="560" y="184" width="38" height="52" rx="4" fill="#35524f"/>
+    <text x="579" y="258" text-anchor="middle" font-size="14">11</text>
+    <rect x="610" y="181" width="38" height="55" rx="4" fill="#35524f"/>
+    <text x="629" y="258" text-anchor="middle" font-size="14">12</text>
+    <rect x="660" y="180" width="38" height="56" rx="4" fill="#35524f"/>
+    <text x="679" y="258" text-anchor="middle" font-size="14">13</text>
+    <rect x="710" y="177" width="38" height="59" rx="4" fill="#35524f"/>
+    <text x="729" y="258" text-anchor="middle" font-size="14">14</text>
+    <rect x="760" y="174" width="38" height="62" rx="4" fill="#35524f"/>
+    <text x="779" y="258" text-anchor="middle" font-size="14">15</text>
+    <rect x="810" y="170" width="38" height="66" rx="4" fill="#35524f"/>
+    <text x="829" y="258" text-anchor="middle" font-size="14">16</text>
+    <rect x="860" y="162" width="38" height="74" rx="4" fill="#35524f"/>
+    <text x="879" y="258" text-anchor="middle" font-size="14">17</text>
+    <rect x="910" y="149" width="38" height="87" rx="4" fill="#35524f"/>
+    <text x="929" y="258" text-anchor="middle" font-size="14">18</text>
+    <rect x="960" y="109" width="38" height="127" rx="4" fill="#ffc53d"/>
+    <text x="979" y="258" text-anchor="middle" font-size="14">19</text>
+    <rect x="1010" y="39" width="38" height="197" rx="4" fill="#ff7a7a"/>
+    <text x="1029" y="258" text-anchor="middle" font-size="14">20</text>
+    <line x1="50" y1="172" x2="1060" y2="172" stroke="#01d294" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="58" y="162" fill="#01d294" font-size="18">average ≈ 2.0 s: looks fine</text>
+    <text x="949" y="97" text-anchor="end" fill="#ffc53d" font-size="18">p95 = 3.9 s (call #19)</text>
+    <text x="999" y="24" text-anchor="end" fill="#ff7a7a" font-size="18">slowest = 6.1 s</text>
+    <text x="540" y="278" text-anchor="middle" font-size="15">20 calls, sorted fastest → slowest (example run)</text>
+    </g></svg>
+  </div>
+  <div class="callout plain">
+    <p><strong>p95</strong> is the time that 95% of calls beat. With 20 calls: sort them, take the 19th. The average hides the slow tail: here one customer in 20 waits about <strong>twice</strong> the average.</p>
+  </div>
+</section>
+
+<section class="slide check">
+  <h2><span class="kicker">Quick check</span>Make it faster</h2>
+  <p>A Deskhand call takes about 4 seconds. Your manager wants 3. Which change helps most?</p>
+  <ol>
+    <li>Send only <code>refund-policy.md</code> instead of all six: the prompt drops from 2,431 to about 520 tokens.</li>
+    <li>Ask for a short JSON answer and cap it with <code>max_tokens</code>: the answer drops from 150 to 50 tokens.</li>
+    <li>Change <code>temperature</code> from 1.0 to 0.</li>
+  </ol>
+  <p class="small muted">Vote with your fingers: 1, 2 or 3. Then a second vote: which one saves the most money?</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Architecture</span>Where the LLM call sits</h2>
+  <div class="figure">
+  <svg viewBox="0 60 1080 185" width="1040" height="178" role="img" aria-label="Request path with LLM call">
+    <defs>
+      <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#01d294"/>
+      </marker>
+    </defs>
+    <g font-family="Segoe UI, sans-serif" font-size="19" fill="#eef6f3" text-anchor="middle">
+      <rect x="20" y="70" width="150" height="60" rx="10" fill="#2e2a14" stroke="#ffc53d"/>
+      <text x="95" y="106">Customer</text>
+      <rect x="240" y="70" width="180" height="60" rx="10" fill="#0d3029" stroke="#01d294"/>
+      <text x="330" y="98">Your service</text>
+      <text x="330" y="120" font-size="15" fill="#9db5b1">request_id born here</text>
+      <rect x="490" y="70" width="180" height="60" rx="10" fill="#251f3d" stroke="#b99cff"/>
+      <text x="580" y="98" fill="#b99cff">LLM API</text>
+      <text x="580" y="120" font-size="15" fill="#9db5b1">slow · paid · can fail</text>
+      <rect x="740" y="70" width="180" height="60" rx="10" fill="#0d3029" stroke="#01d294"/>
+      <text x="830" y="98">Check the answer</text>
+      <text x="830" y="120" font-size="15" fill="#9db5b1">never trust it as is</text>
+      <line x1="170" y1="100" x2="232" y2="100" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <line x1="420" y1="100" x2="482" y2="100" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <line x1="670" y1="100" x2="732" y2="100" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <rect x="240" y="185" width="430" height="52" rx="10" fill="#112a45" stroke="#5aa2ff" stroke-dasharray="6 5"/>
+      <text x="455" y="217" font-size="17" fill="#5aa2ff">logs: tokens · cost · latency · request_id</text>
+      <line x1="330" y1="130" x2="330" y2="180" stroke="#5aa2ff" stroke-width="2" stroke-dasharray="4 4"/>
+      <line x1="580" y1="130" x2="580" y2="180" stroke="#5aa2ff" stroke-width="2" stroke-dasharray="4 4"/>
+      <rect x="960" y="70" width="100" height="60" rx="10" fill="#2e2a14" stroke="#ffc53d"/>
+      <text x="1010" y="106">Reply</text>
+      <line x1="920" y1="100" x2="952" y2="100" stroke="#01d294" stroke-width="2.5" marker-end="url(#arr3)"/>
+    </g>
+  </svg>
+  </div>
+  <div class="callout analogy">
+    <p>A payment provider. You never call it without a timeout, and you never write its response to the database unchecked. Same rules here, plus one: this API can return a confident wrong answer with a <code>200 OK</code>.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Habit</span>Log every call, starting today</h2>
+  <div class="callout analogy">
+    <p>A <code>request_id</code> is a parcel tracking number. Every log line for that request carries it, so you can follow one request through every step.</p>
+  </div>
+  <pre><code>{"ts": "2026-10-19T18:04:11Z", "request_id": "a1b2c3d4",
+ "event": "llm.call", "model": "gpt-4.1-mini",
+ "prompt_tokens": 2431, "completion_tokens": 152,
+ "cost_usd": 0.0012, "latency_ms": 1840}</code></pre>
+  <ul>
+    <li>One JSON line per call, appended to <code>logs/runs.jsonl</code>.</li>
+    <li>A customer complains? Search for their <code>request_id</code>. That starts fixing incident <strong>#10</strong>.</li>
+  </ul>
+</section>
+
+<section class="slide demo">
+  <h2><span class="kicker">Live demo</span>Measure it, then find it in the log</h2>
+  <div class="cards">
+    <div class="card"><h4>Three prompt sizes</h4><p>T-1001 alone, then with the refund policy, then with all six policies.</p><p>Predict the token count of each. Does the answer get better?</p></div>
+    <div class="card"><h4>20 calls, one prompt</h4><p>Same question twenty times, every call logged.</p><p>Predict: how much slower is p95 than the average?</p></div>
+    <div class="card"><h4>5 calls at temperature 1.0</h4><p>"Suggest a resolution in two sentences."</p><p>Predict: how many different decisions out of five?</p></div>
+  </div>
+  <p>Then you call out one request ID from the screen, and we find its line in <code>logs/runs.jsonl</code>.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="kicker">Recap</span>Five things to remember</h2>
+  <ol>
+    <li>An LLM <strong>predicts the next token</strong>. Likely is not the same as true.</li>
+    <li>It only knows what is in <strong>this call's context window</strong>. No memory, no database.</li>
+    <li><strong>Tokens are the meter</strong>: cost, speed and space are all counted in them.</li>
+    <li><strong>Temperature 0</strong> for anything a program reads.</li>
+    <li>Treat the model as a slow, paid, unreliable API: <strong>check its output, log every call</strong>.</li>
+  </ol>
+</section>
+
+<section class="slide scoreboard">
+  <h2><span class="kicker">Wrap</span>Scoreboard: 0 / 10 retired</h2>
+  <ol class="two-col">
+    <li>Sometimes it returns invalid resolution schemas.</li>
+    <li>Sometimes it sends customers a generic LLM apology instead of an answer.</li>
+    <li>Sometimes partial failures are streamed to the support agent's screen.</li>
+    <li>Retries are not always effective.</li>
+    <li>The order-lookup API may fail, time out, or return inconsistent data.</li>
+    <li>It once suggested a refund larger than the order total.</li>
+    <li>Costs spike on long ticket threads.</li>
+    <li>The same ticket can produce different resolutions.</li>
+    <li>A crash after issuing a refund left the ticket unresolved, and a retry refunded twice.</li>
+    <li>Nobody can debug why a specific run failed.</li>
+  </ol>
+  <p class="small">Nothing fixed yet, but you now know <strong>why</strong> #7 and #8 happen, and you started the habit that fixes #10. Wednesday we start crossing lines off: <strong>Session 2, Prompting as Engineering</strong>.</p>
+</section>
+
+<section class="slide home">
+  <h2><span class="kicker">Before Wednesday</span>Tonight, if you want your hands on it</h2>
+  <ol>
+    <li>Check your setup, then run <code>incidents.py</code> three times. Write down the refund amount for ticket C each time. How much did the bot's "mood" cost Nimbus?</li>
+    <li>The four steps after the next slide, about an hour: your first logged call, three prompt sizes, 20 calls with p95. Keep your <code>logs/runs.jsonl</code>; we'll use it again.</li>
+    <li>Imagine a v1 run just failed for a customer on the phone. List every piece of information you wish you had. <span class="muted">That list is the next four weeks.</span></li>
+  </ol>
+  <p class="small">Written out in <code>handouts/session-01.md</code>. Wednesday: Prompting as Engineering.</p>
+</section>
+
+<section class="slide lead">
+  <h1>After class</h1>
+  <p class="subtitle">Tonight's steps, written out. Not shown in class: open them when you have the repo.</p>
+</section>
+
+<section class="slide home">
+  <h2><span class="kicker">Tonight · step 1</span>Check your setup and watch v1 fail</h2>
+  <pre><code>python ..\prep-kit\code\check_setup.py   <span class="comment"># from deskhand-workshop/: should end "Ready for Day 1"</span>
+cd checkpoints\00-broken-bot
+python incidents.py                   <span class="comment"># run it from its own folder</span></code></pre>
+  <ul>
+    <li>Skipped the prep kit? Get it from <code>github.com/hasankanaan26/prep-kit</code>. Its steps 01 and 08 get you set up.</li>
+    <li>Prefer a browser? From the repo root: <code>python lab/server.py</code>, open <code>localhost:8010</code>, pick checkpoint 00.</li>
+  </ul>
+</section>
+
+<section class="slide home">
+  <h2><span class="kicker">Tonight · step 2</span>Your first API call, done properly</h2>
+  <pre><code>import json, time, uuid
+from dotenv import load_dotenv
+from openai import OpenAI            <span class="comment"># on Azure: AzureOpenAI, set up as in bot.py</span>
+load_dotenv()                        <span class="comment"># loads your keys from .env</span>
+client = OpenAI()
+request_id = uuid.uuid4().hex[:8]    <span class="comment"># this call's tracking number</span>
+t0 = time.perf_counter()
+resp = client.chat.completions.create(
+    model="gpt-4o-mini", temperature=0,       <span class="comment"># on Azure: your deployment name</span>
+    messages=[{"role": "user", "content": "Say hello to Nimbus."}])
+latency_ms = round((time.perf_counter() - t0) * 1000)</code></pre>
+  <p class="small">Print the reply, both token counts from <code>resp.usage</code> and <code>latency_ms</code>, then append them with the <code>request_id</code> as <strong>one JSON line</strong> to <code>logs/runs.jsonl</code>.</p>
+</section>
+
+<section class="slide home">
+  <h2><span class="kicker">Tonight · step 3</span>Count tokens, put a price on them</h2>
+  <ul>
+    <li>Take ticket <code>T-1001</code> (cracked headphones) from <code>shared/data/tickets.json</code>.</li>
+    <li>Send it three ways and fill in the table:</li>
+  </ul>
+  <table>
+    <tr><th>Prompt</th><th>Prompt tokens</th><th>Output tokens</th><th>Cost</th><th>Was the answer better?</th></tr>
+    <tr><td>Ticket only</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Ticket + <code>refund-policy.md</code></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Ticket + all six policies</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  <p class="small">Cost = tokens × price ÷ 1,000,000. Prices: <code>PRICE_TABLE</code> in <code>checkpoints/01-triage/llm.py</code>. Bonus: count tokens <em>before</em> sending with <code>tiktoken</code>.</p>
+</section>
+
+<section class="slide home">
+  <h2><span class="kicker">Tonight · step 4</span>20 calls: cost, average, p95</h2>
+  <ul>
+    <li>Loop the same prompt 20 times, e.g. <em>"Classify this ticket as refund, replacement or question: …"</em> with T-1001. Log every call.</li>
+    <li>Compute the total cost and the average latency.</li>
+    <li>Compute p95: <code>sorted(latencies)[18]</code>, the 19th of 20.</li>
+    <li>Compare: how much bigger is your p95 than your average?</li>
+    <li>Bonus: run 5 calls at <code>temperature=1.0</code> asking for a one-sentence resolution. Are the 5 answers the same?</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>
