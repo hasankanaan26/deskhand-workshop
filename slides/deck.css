@@ -1,0 +1,433 @@
+/* ============================================================
+   Deskhand workshop: shared slide theme
+   SE Factory palette on a deep slate: brand green #01d294 → teal #11958a,
+   with blue, yellow, violet and coral for variety.
+   Slides are <section class="slide"> inside <main class="deck">.
+   Every color is a token below. Inline SVG diagrams use the same hex
+   values (see "SVG palette"), and tools/html2pptx.js mirrors them.
+   ============================================================ */
+
+:root {
+  /* surfaces */
+  --bg: #0c1a1d;          /* deep slate */
+  --surface: #13272b;     /* boxes, code */
+  --border: #24413f;
+  --fg: #eef6f3;
+  --muted: #9db5b1;
+  --white: #ffffff;
+
+  /* brand */
+  --green: #01d294;       /* SE Factory primary green */
+  --teal: #11958a;        /* gradient stop */
+  --accent: var(--green);
+
+  /* vivid secondaries */
+  --blue: #5aa2ff;
+  --yellow: #ffc53d;
+  --violet: #b99cff;
+  --coral: #ff7a7a;
+  --lime: #b4f05a;
+
+  /* tinted backgrounds for callouts and cards */
+  --tint-green: #0d3029;
+  --tint-blue: #112a45;
+  --tint-yellow: #2e2a14;
+  --tint-violet: #251f3d;
+  --tint-coral: #3a1c1f;
+
+  /* meaning */
+  --good: var(--lime);
+  --bad: var(--coral);
+  --warn: var(--yellow);
+  --code-bg: var(--surface);
+  --code-fg: #d8fff0;
+
+  --grad: linear-gradient(90deg, #01d294 0%, #11958a 100%);
+  --heading-font: "Space Grotesk", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+}
+
+/* SVG palette (for diagram authors; these are the hex values to use inline)
+   text #eef6f3 · muted text #9db5b1 · box fill #13272b · box border #24413f
+   green #01d294 · blue #5aa2ff · yellow #ffc53d · violet #b99cff · coral #ff7a7a
+   lime #b4f05a · green tint #0d3029 · blue tint #112a45 · yellow tint #2e2a14
+   violet tint #251f3d · coral tint #3a1c1f · dim line #35524f · dim text #6f8f8a */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 28px;            /* base sized for 1280x720 projection */
+  line-height: 1.45;
+}
+
+.deck {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ---- slides ---- */
+.slide {
+  display: none;
+  position: absolute;
+  inset: 0;
+  padding: 52px 84px 90px;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+.slide.current { display: flex; }
+/* never squeeze a block to fit: a too-full slide must look too full (and get split) */
+.slide > * { flex-shrink: 0; }
+
+/* brand stripe across the top of every content slide */
+.slide:not(.lead)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--grad);
+}
+
+/* footer on every slide */
+.slide::after {
+  content: "Applied AI Engineering \00B7  SE Factory \00B7  Deskhand";
+  position: absolute;
+  bottom: 24px;
+  left: 84px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* ---- headings ---- */
+h1, h2, h3 { margin: 0 0 0.5em; line-height: 1.15; font-weight: 700; font-family: var(--heading-font); }
+h1 { font-size: 2.3em; }
+h2 { font-size: 1.55em; color: var(--white); }
+h2 .kicker, h3 .kicker {
+  display: table;             /* a pill on its own line, as wide as its text */
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.42em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--green);
+  padding: 3px 12px;
+  border-radius: 999px;
+  margin-bottom: 0.6em;
+}
+h3 { font-size: 1.15em; color: var(--green); }
+
+p { margin: 0.4em 0; }
+ul, ol { margin: 0.4em 0; padding-left: 1.2em; }
+li { margin: 0.38em 0; }
+li::marker { color: var(--green); }
+li > ul { margin: 0.15em 0; }
+strong { color: var(--white); }
+em { color: var(--green); font-style: normal; }
+a { color: var(--blue); }
+blockquote {
+  margin: 0.8em 0;
+  padding: 0.5em 1em;
+  border-left: 6px solid var(--green);
+  background: var(--tint-green);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.9em;
+}
+
+/* ---- lead (title) slides ---- */
+.slide.lead {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 60% 55% at 85% 10%, var(--tint-green) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 10% 95%, var(--tint-blue) 0%, transparent 70%),
+    var(--bg);
+}
+.slide.lead h1 {
+  font-size: 2.9em;
+  margin-bottom: 0.25em;
+  color: var(--white);
+}
+.slide.lead h1::after {
+  content: "";
+  display: block;
+  width: 160px;
+  height: 8px;
+  margin: 0.35em auto 0;
+  border-radius: 4px;
+  background: var(--grad);
+}
+.slide.lead .subtitle { font-size: 1.15em; color: var(--fg); }
+.slide.lead .session-meta {
+  margin-top: 1.6em;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---- slide badges: LAB, TRY THIS TONIGHT, QUICK CHECK, LIVE DEMO ----
+   .lab   a hands-on exercise done in class (older decks)
+   .home  the same exercise, done at home after a walkthrough session
+   .demo  the instructor runs it live and the room predicts first */
+.slide.lab, .slide.home { border-left: 12px solid var(--yellow); }
+.slide.lab h2 .kicker, .slide.home h2 .kicker { background: var(--yellow); }
+.slide.lab > h2::before,
+.slide.home > h2::before,
+.slide.demo > h2::before,
+.slide.check > h2::before {
+  position: absolute;
+  top: 40px;
+  right: 84px;
+  color: var(--bg);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  padding: 6px 18px;
+  border-radius: 8px;
+}
+.slide.lab > h2::before { content: "LAB"; background: var(--yellow); }
+.slide.home > h2::before { content: "TRY THIS TONIGHT"; background: var(--yellow); }
+.slide.demo { border-left: 12px solid var(--green); }
+.slide.demo > h2::before { content: "LIVE DEMO"; background: var(--green); }
+.slide.check { border-left: 12px solid var(--blue); }
+.slide.check h2 .kicker { background: var(--blue); }
+.slide.check > h2::before { content: "QUICK CHECK"; background: var(--blue); }
+
+/* ---- two-column numbered list, on any slide: <ol class="two-col"> ---- */
+ol.two-col { column-count: 2; column-gap: 56px; }
+ol.two-col > li { break-inside: avoid; }
+
+/* ---- scoreboard (incident list) slides ---- */
+.slide.scoreboard ol { font-size: 0.72em; column-count: 1; }
+.slide.scoreboard ol.two-col { column-count: 2; column-gap: 56px; }
+.slide.scoreboard li { margin: 0.32em 0; break-inside: avoid; }
+.slide.scoreboard li::marker { color: var(--coral); font-weight: 700; }
+.slide.scoreboard li.done {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--green);
+  text-decoration-thickness: 2.5px;
+}
+.slide.scoreboard li.done::marker { color: var(--green); }
+.tag {
+  display: inline-block;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 1px 10px;
+  border-radius: 6px;
+  vertical-align: middle;
+  margin-left: 0.5em;
+}
+.tag.partial { background: var(--yellow); color: var(--bg); }
+.tag.retired { background: var(--green); color: var(--bg); }
+
+/* ---- callouts: plain words, examples, analogies, warnings ----
+   <div class="callout example"><p>…</p></div>
+   The label comes from the class; add data-label="…" to override it. */
+.callout {
+  position: relative;
+  margin: 0.45em 0;
+  padding: 0.55em 0.9em 0.5em;
+  border-radius: 12px;
+  border-left: 7px solid var(--green);
+  background: var(--tint-green);
+  font-size: 0.86em;
+}
+.callout::before {
+  display: block;
+  margin-bottom: 0.15em;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.callout > :first-child { margin-top: 0; }
+.callout > :last-child { margin-bottom: 0; }
+.callout p, .callout li { margin: 0.2em 0; }
+.callout pre { font-size: 0.74em; background: var(--bg); }
+.callout.plain::before   { content: "In plain words"; }
+.callout.example         { border-left-color: var(--yellow); background: var(--tint-yellow); }
+.callout.example::before { content: "Example"; color: var(--yellow); }
+.callout.analogy         { border-left-color: var(--violet); background: var(--tint-violet); }
+.callout.analogy::before { content: "Think of it like"; color: var(--violet); }
+.callout.watch           { border-left-color: var(--coral); background: var(--tint-coral); }
+.callout.watch::before   { content: "Watch out"; color: var(--coral); }
+.callout.info            { border-left-color: var(--blue); background: var(--tint-blue); }
+.callout.info::before    { content: "Good to know"; color: var(--blue); }
+.callout[data-label]::before { content: attr(data-label); }
+
+/* ---- cards: a row of 2–4 colored boxes ----
+   <div class="cards"><div class="card"><h4>Title</h4><p>…</p></div>…</div> */
+.cards { display: flex; gap: 22px; margin: 0.5em 0; align-items: stretch; }
+.cards > .card { flex: 1; min-width: 0; }
+.card {
+  padding: 0.55em 0.8em 0.6em;
+  border-radius: 14px;
+  background: var(--surface);
+  border-top: 6px solid var(--green);
+  font-size: 0.8em;
+}
+.card h4 {
+  margin: 0 0 0.3em;
+  font-family: var(--heading-font);
+  font-size: 1.08em;
+  color: var(--green);
+}
+.card p, .card li { margin: 0.25em 0; }
+.card ul { padding-left: 1.1em; }
+.cards > .card:nth-child(5n+2) { border-top-color: var(--blue); }
+.cards > .card:nth-child(5n+2) h4 { color: var(--blue); }
+.cards > .card:nth-child(5n+3) { border-top-color: var(--yellow); }
+.cards > .card:nth-child(5n+3) h4 { color: var(--yellow); }
+.cards > .card:nth-child(5n+4) { border-top-color: var(--violet); }
+.cards > .card:nth-child(5n+4) h4 { color: var(--violet); }
+.cards > .card:nth-child(5n+5) { border-top-color: var(--coral); }
+.cards > .card:nth-child(5n+5) h4 { color: var(--coral); }
+/* do/don't cards: only the bar and the title take the color, not the body text
+   (.good/.bad alone color text), and they win over the nth-child cycle above */
+.cards > .card.good, .cards > .card.bad { color: var(--fg); }
+.cards > .card.good { border-top-color: var(--lime); }
+.cards > .card.good h4 { color: var(--lime); }
+.cards > .card.bad { border-top-color: var(--coral); }
+.cards > .card.bad h4 { color: var(--coral); }
+
+/* ---- code ---- */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--teal);
+  border-radius: 12px;
+  padding: 18px 26px;
+  margin: 0.5em 0;
+  font-size: 0.66em;
+  line-height: 1.5;
+  overflow: auto;
+  color: var(--code-fg);
+}
+code, kbd {
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+:not(pre) > code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 0.82em;
+  color: var(--code-fg);
+}
+kbd {
+  background: var(--code-bg);
+  border: 1px solid var(--muted);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 0.8em;
+}
+.comment { color: var(--muted); }
+.hl { color: var(--green); }
+
+/* ---- tables ---- */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+  font-size: 0.72em;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--tint-green);
+  color: var(--green);
+  font-weight: 700;
+}
+tr:nth-child(even) td { background: var(--surface); }
+
+/* ---- layout helpers ---- */
+.cols { display: flex; gap: 48px; align-items: flex-start; }
+.cols > * { flex: 1; min-width: 0; }
+.center { text-align: center; }
+.muted { color: var(--muted); }
+.accent { color: var(--green); }
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+.warn { color: var(--warn); }
+.blue { color: var(--blue); }
+.violet { color: var(--violet); }
+.small { font-size: 0.78em; }
+.tiny { font-size: 0.62em; }
+.spacer { flex: 1; }
+.figure { display: flex; justify-content: center; margin: 0.4em 0; }
+.figure svg { max-width: 100%; height: auto; }
+
+/* ---- speaker notes ---- */
+.notes { display: none; }
+body.show-notes .slide.current .notes {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  background: var(--surface);
+  border-top: 3px solid var(--green);
+  color: var(--fg);
+  font-size: 19px;
+  line-height: 1.5;
+  padding: 16px 84px 18px;
+}
+body.show-notes .slide.current .notes { max-height: 50vh; overflow-y: auto; }
+.notes p { margin: 0 0 6px; }
+.notes p:last-child { margin-bottom: 0; }
+.notes b { color: var(--green); }
+.notes i { color: var(--muted); } /* [bracketed] lines are for the instructor, not spoken */
+body.show-notes .slide.current .notes::before {
+  content: "NOTES \00B7  ";
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 14px;
+}
+
+/* ---- runtime chrome (injected by deck.js) ---- */
+#deck-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 6px;
+  width: 0;
+  background: linear-gradient(90deg, #01d294 0%, #5aa2ff 100%);
+  z-index: 40;
+  transition: width 0.18s ease;
+}
+#deck-counter {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  z-index: 40;
+  font-size: 16px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #deck-progress { transition: none; }
+}

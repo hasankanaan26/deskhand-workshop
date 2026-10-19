@@ -19,8 +19,9 @@ This repo grows after each session, so it never shows you more than you need yet
 | Arrived | What came in |
 | --- | --- |
 | Sun Oct 18 | Setup files, the shared data (tickets, policies, mock order API), checkpoint 00-broken-bot |
+| Mon Oct 19 | Session 1 slides and handout, checkpoint 01-triage, the lab (lab/) |
 
-Next update: Mon Oct 19, after class.
+Next update: Wed Oct 21, after class.
 
 ## Repo map
 
