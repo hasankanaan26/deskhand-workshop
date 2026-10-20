@@ -33,16 +33,58 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 # free. Any LLM_PROVIDER other than "azure" (including "anthropic") silently
 # lands in the OpenAI branch. 01-triage's llm.py builds the client lazily,
 # rejects unknown providers, and keeps every provider detail in one file.
-if os.getenv("LLM_PROVIDER", "azure").lower() == "azure":
+SUPPORTED_PROVIDERS = ["azure", "openai", "gemini", "openrouter", "ollama"]
+
+LLM_PROVIDER = os.getenv("LLM_PROVIDER")
+if not LLM_PROVIDER:
+    print("Error: LLM_PROVIDER environment variable is not set.", file=sys.stderr)
+    print(
+        f"Please set it to one of: {', '.join(SUPPORTED_PROVIDERS)}",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+LLM_PROVIDER = LLM_PROVIDER.lower().strip()
+if LLM_PROVIDER not in SUPPORTED_PROVIDERS:
+    print(
+        f"Error: Invalid LLM_PROVIDER '{LLM_PROVIDER}'. "
+        f"Must be one of: {', '.join(SUPPORTED_PROVIDERS)}",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+if LLM_PROVIDER == "azure":
     client = AzureOpenAI(
         api_key=os.getenv("AZURE_OPENAI_API_KEY"),
         azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
         api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
     )
     MODEL = os.getenv("AZURE_OPENAI_DEPLOYMENT")  # azure wants the deployment name
-else:
+
+elif LLM_PROVIDER == "openai":
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+elif LLM_PROVIDER == "gemini":
+    client = OpenAI(
+        base_url=os.getenv(
+            "GEMINI_BASE_URL",
+            "https://generativelanguage.googleapis.com/v1beta/openai/",
+        ),
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
+    MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+elif LLM_PROVIDER == "openrouter":
+    client = OpenAI(
+        base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+    )
+    MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")
+
+else:
+    client = OpenAI(base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"))
+    MODEL = os.getenv("OLLAMA_MODEL", "gemma4:cloud")
 
 
 # FLAW (#7 cost): all six policy documents, about 11,000 characters (roughly
@@ -126,7 +168,7 @@ Be generous, we want happy customers!"""
                 # LLM_MALFORMED_OUTPUT instead of a json.loads crash.
                 max_tokens=256,  # keep the bill down
                 stream=True,
-            )
+            )  # type:ignore
             raw = ""
             # FLAW (#3): the customer watches machine output being written,
             # half-finished JSON and every failed attempt included. 02-service's
