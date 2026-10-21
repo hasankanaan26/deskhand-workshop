@@ -28,6 +28,9 @@ from pathlib import Path
 
 import labproto
 
+# Third-party packages bot.py imports, loaded while the runner waits warm (labproto.preload).
+PRELOAD = ("openai", "dotenv")
+
 _MISSING = object()  # "resolve() never returned", as distinct from returning None
 
 
@@ -64,7 +67,7 @@ def run(req: dict, ch: labproto.Channel, cap: labproto.CapturedStdout) -> None:
         import bot
     except BaseException:
         ch.emit("trace", checkpoint="00", outcome="crashed", crash=traceback.format_exc(),
-                attempts=[], stdout=cap.text(), duration_ms=0)
+                attempts=[], stdout=cap.text(), duration_ms=0, startup=labproto.startup())
         return
 
     attempts: list[dict] = []  # one record per provider call, in order
@@ -288,10 +291,12 @@ def run(req: dict, ch: labproto.Channel, cap: labproto.CapturedStdout) -> None:
         bot_file=bot_file,
         resolve_line=resolve_code.co_firstlineno,
         duration_ms=int((time.perf_counter() - started) * 1000),
+        startup=labproto.startup(),
     )
 
 
 def main() -> None:
+    labproto.preload(PRELOAD)
     req = labproto.read_request()
     ch = labproto.Channel()
     labproto.use_checkpoint_dir()

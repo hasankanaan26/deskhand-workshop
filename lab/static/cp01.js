@@ -97,7 +97,8 @@
     add(out, L.headline({
       run_id: t.run_id, checkpoint: "01", label: t.label, verdict: v[0], tone: v[1], pill: L.outcomeInfo(t),
       stats: [["LLM calls", attempts.length], ["cost (billed)", usd(t.billed_cost_usd)], ["wall time", ms(t.duration_ms)], ["model", t.model],
-        ["temperature", call0.temperature], ["request id", t.request_id || "—"], ["log lines", (t.log_lines || []).length]]
+        ["temperature", call0.temperature], ["request id", t.request_id || "—"], ["log lines", (t.log_lines || []).length],
+        ["startup", L.startup(t.startup)]]
     }).root);
     add(out, L.stepper(steps(t)).root);
     if (t.injected) {

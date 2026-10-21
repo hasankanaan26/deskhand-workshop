@@ -66,7 +66,9 @@ terminal shows no badges (the lab cannot see its environment).
 | `LAB_SONNET_MODEL` | `claude-sonnet-5` | the model id behind **Claude Sonnet** in the model picker |
 
 **Model picker** (top bar): **GPT** (your Azure or OpenAI config from `.env`),
-**Claude Haiku** or **Claude Sonnet** (need `ANTHROPIC_API_KEY`). The lab never
+**Claude Haiku** or **Claude Sonnet** (need `ANTHROPIC_API_KEY`). With
+`LLM_PROVIDER` set to gemini, openrouter, ollama or lmstudio
+(see `LLM_PROVIDERS.md`), the first entry is that provider instead of GPT. The lab never
 edits `.env`: it passes `LLM_PROVIDER` / `ANTHROPIC_MODEL` to the processes it
 starts, and the checkpoints' `load_dotenv()` leaves variables that are already
 set alone. Runners use the new model on the next run; services the lab started
@@ -220,6 +222,17 @@ Each checkpoint has its own `llm.py`, `models.py`, `errors.py`, and so on,
 all with the same module names, so two checkpoints are never imported into
 one process. The runner reads one JSON request on stdin and streams NDJSON
 events back; anything the checkpoint prints is captured and forwarded.
+
+Every run gets a fresh process, but not a cold one. Importing the provider
+SDKs takes seconds (2–3 s on a Windows laptop with Defender scanning each
+file), so the lab keeps the next runner started: it has
+imported only the third-party packages in its `PRELOAD` list and waits on
+stdin. A run takes it and a replacement starts behind it (up to three while
+Repeat or Compare has runs in flight). The checkpoint's own modules and
+`.env` still load after the request arrives, so an edited checkpoint or a new
+model pick takes effect on the next run. The headline's **startup** stat says
+`pre-loaded`, or how long a cold start made the run wait; **wall time** never
+includes it.
 
 - `runners/cp00.py` imports `bot` unmodified and calls `bot.main()` with
   `sys.argv = ["bot.py", ticket]`. `bot.client` is swapped for a proxy that

@@ -143,7 +143,8 @@
     add(out, L.headline({
       run_id: t.run_id, checkpoint: "00", label: t.label, verdict: v[0], tone: v[1], pill: L.outcomeInfo(t),
       stats: [["LLM calls", attempts.length], ["cost", usd(t.cost_usd)], ["wall time", ms(t.duration_ms)], ["model", t.model],
-        ["temperature", attempts[0] ? attempts[0].temperature : "—"], ["request id", "none"], ["log lines", "0"]]
+        ["temperature", attempts[0] ? attempts[0].temperature : "—"], ["request id", "none"], ["log lines", "0"],
+        ["startup", L.startup(t.startup)]]
     }).root);
     add(out, L.stepper(steps(t)).root);
 

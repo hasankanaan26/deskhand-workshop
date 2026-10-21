@@ -38,6 +38,21 @@ from pathlib import Path
 
 import labproto
 
+# Third-party packages 01's modules import, loaded while the runner waits warm
+# (labproto.preload). llm.py imports anthropic only on the Anthropic path, so
+# preload_list() adds it only when this runner will call Claude.
+PRELOAD = ("openai", "pydantic", "dotenv", "rich.console", "rich.table")
+
+
+def preload_list() -> tuple[str, ...]:
+    """PRELOAD, plus anthropic when LLM_PROVIDER says so: the lab's model
+    picker sets it in the env, else it comes from the repo .env (the file
+    llm.py's load_dotenv() finds, two folders up from the cwd)."""
+    from dotenv import dotenv_values
+
+    provider = os.environ.get("LLM_PROVIDER") or dotenv_values(Path.cwd().parents[1] / ".env").get("LLM_PROVIDER")
+    return PRELOAD + (("anthropic",) if (provider or "").strip().lower() == "anthropic" else ())
+
 INJECTED_MAX_TOKENS = 5  # too few for any TriageResult: the provider stops with finish_reason "length"
 
 
@@ -264,10 +279,12 @@ def run(req: dict, ch: labproto.Channel, cap: labproto.CapturedStdout) -> None:
         stdout=cap.text(),
         outcome="crashed" if crash else ("failed" if observed["error"] else "validated"),
         duration_ms=int((time.perf_counter() - started) * 1000),
+        startup=labproto.startup(),
     )
 
 
 def main() -> None:
+    labproto.preload(preload_list())
     req = labproto.read_request()
     ch = labproto.Channel()
     labproto.use_checkpoint_dir()

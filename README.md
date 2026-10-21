@@ -20,8 +20,9 @@ This repo grows after each session, so it never shows you more than you need yet
 | --- | --- |
 | Sun Oct 18 | Setup files, the shared data (tickets, policies, mock order API), checkpoint 00-broken-bot |
 | Mon Oct 19 | Session 1 slides and handout, checkpoint 01-triage, the lab (lab/) |
+| Wed Oct 21 | Session 2 slides and handout, the Session 1 measuring script, free LLM providers (LLM_PROVIDERS.md) |
 
-Next update: Wed Oct 21, after class.
+Next update: Fri Oct 23, after class.
 
 ## Repo map
 
@@ -68,9 +69,11 @@ Copy `.env.example` to `.env` and fill in one provider block:
 # macOS/Linux:  cp .env.example .env
 ```
 
-`LLM_PROVIDER` chooses which block is used — `azure` (Azure OpenAI), `openai`, or
+`LLM_PROVIDER` chooses which block is used — `azure` (Azure OpenAI), `openai`,
 `anthropic` (Claude; it has no embeddings API, so checkpoints 03 and 04 also need
-`EMBEDDING_PROVIDER` set to `openai` or `azure`).
+`EMBEDDING_PROVIDER` set to another provider), `gemini`, `openrouter`, or the two that
+run on your own laptop, `ollama` and `lmstudio`. [LLM_PROVIDERS.md](LLM_PROVIDERS.md)
+sets up each one, including the free options.
 On Azure, every `model=` in the code is a **deployment name**, not a model name:
 set `AZURE_OPENAI_DEPLOYMENT` for chat and `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`
 (a second, separate deployment) for the RAG index from checkpoint 03 on.

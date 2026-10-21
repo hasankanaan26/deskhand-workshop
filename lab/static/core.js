@@ -92,6 +92,13 @@ window.L = (function () {
     return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   function ms(n) { return n === null || n === undefined ? "—" : (n >= 1000 ? (n / 1000).toFixed(1) + "s" : n + "ms"); }
+  // A 00/01 trace's startup {wait_ms, warm}: "pre-loaded" when the lab's warm
+  // pool had the runner ready, else how long the run waited for Python to
+  // start and import the SDKs. Not part of the wall time.
+  function startup(s) {
+    if (!s || s.wait_ms === null || s.wait_ms === undefined) return "—";
+    return s.warm ? "pre-loaded" : ms(s.wait_ms);
+  }
   function num(n) { return n === null || n === undefined ? "—" : Number(n).toLocaleString(); }
   function short(sha) { return sha ? sha.slice(0, 10) + "…" : "—"; }
   function jsonish(v) { return v === undefined ? "—" : JSON.stringify(v); }
@@ -708,7 +715,7 @@ window.L = (function () {
   // L.report, L.render00, L.runOn, ...); each file's last lines list them.
   return {
     S: S, on: on, emit: emit,
-    $: $, el: el, add: add, usd: usd, money: money, ms: ms, num: num, short: short, jsonish: jsonish,
+    $: $, el: el, add: add, usd: usd, money: money, ms: ms, startup: startup, num: num, short: short, jsonish: jsonish,
     basename: basename, titleCase: titleCase, cpName: cpName,
     why: why, citeLink: citeLink, citesRow: citesRow, panel: panel, section: section, chip: chip, pill: pill,
     pre: pre, kv: kv, note: note, checklist: checklist, copyBtn: copyBtn, cmdBlock: cmdBlock,

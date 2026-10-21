@@ -67,8 +67,9 @@ from pydantic import BaseModel, ConfigDict
 #   2. The answer is a StreamingResponse of NDJSON, one JSON event per line.
 #      The first line is a "start" event. core.js runStream() reads the lines
 #      as they arrive and hands each one to the view.
-#   3. 00 and 01: _spawn() starts lab/runners/cpXX.py with cwd = the
-#      checkpoint folder and forwards the runner's events (redacted).
+#   3. 00 and 01: _spawn() hands the request to lab/runners/cpXX.py (cwd =
+#      the checkpoint folder), started ahead of time by the warm pool when it
+#      can be, and forwards the runner's events (redacted).
 #      02–04: _run_service() POSTs /tickets to the running service, then
 #      _watch() reads its SSE stream and re-emits each event as {"type": "sse"}.
 #   4. The last line is a "trace". _finish_trace() enriches it (code links,
@@ -266,37 +267,41 @@ for _cp in ("02", "03", "04"):
 # that tends to reproduce it on checkpoint 00 and to the checkpoint that
 # retires it. Ticket ids are from shared/data/tickets.json; letters are the
 # Session 1 demos in checkpoints/00-broken-bot/incidents.py.
+# "retired" follows the decks' scoreboards (Session 2 retires #2, Session 4
+# #3, Session 5 #1 #5 #9, Session 9 #6, Session 11 #7 #10). An incident the
+# decks only ever mark PARTIAL carries "partial": True, and the board says
+# "narrowed" instead of "retired" for it.
 INCIDENT_BOARD: list[dict[str, Any]] = [
     {"n": 1, "text": "Sometimes it returns invalid resolution schemas.",
-     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "01", "incident": "A"},
-     "watch": "On 00, json.loads blows up on JSON cut off at max_tokens (finish_reason “length”, never checked). On 01 the provider is handed the schema and Pydantic parses the reply; on 02+ the plan also passes business rules."},
+     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "02", "incident": "A"},
+     "watch": "On 00, json.loads blows up on JSON cut off at max_tokens (finish_reason “length”, never checked). On 01 the provider is handed the schema and Pydantic parses the triage labels (partial: the resolution plan doesn't exist yet). On 02 the plan gets the same schema plus business rules, which retires it."},
     {"n": 2, "text": "Sometimes it sends customers a generic LLM apology instead of an answer.",
-     "reproduce": {"incident": "B"}, "retired": {"checkpoint": "02", "incident": "B"},
-     "watch": "On 00, “let me check the shipping status for you” is the answer: it can't look anything up. On 02 the order is looked up before planning, and the reply is drafted from a validated plan."},
+     "reproduce": {"incident": "B"}, "retired": {"checkpoint": "01", "incident": "B"},
+     "watch": "On 00, “let me check the shipping status for you” is the answer: model text goes straight to the customer. On 01 the model can only return four labels, and a failure ends in a sentence from errors.py, never in model text. 02 then drafts the reply from a validated plan."},
     {"n": 3, "text": "Sometimes partial failures are streamed to the support agent's screen.",
      "reproduce": {"incident": "A"}, "retired": {"checkpoint": "02", "incident": "A"},
      "watch": "Read “What the customer saw” on 00: a half-built JSON reply for every retry. On 02 only reply.delta streams; the plan arrives whole or not at all."},
     {"n": 4, "text": "Retries are not always effective.",
-     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "01", "incident": "A", "inject_truncate": 1},
-     "watch": "00 resends the identical prompt up to three times. 01 repairs once and says what was wrong — switch fault injection on to watch the repair run."},
+     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "01", "incident": "A", "inject_truncate": 1, "partial": True},
+     "watch": "00 resends the identical prompt up to three times. 01 repairs once and says what was wrong — switch fault injection on to watch the repair run. Still partial on every scoreboard: a busy provider is passed up unchanged, and 02's order-API retries only cover the tool."},
     {"n": 5, "text": "The order-lookup API may fail, time out, or return inconsistent data.",
      "reproduce": {"ticket_id": "T-1001"}, "retired": {"checkpoint": "02", "ticket_id": "T-1001"},
      "watch": "00 never calls the order API at all. 02 wraps it in a tool with a 5s timeout, two retries and taxonomy-coded failures. To see them, open Setup, stop the mock API and start it again with chaos “flaky” (MOCK_CHAOS=flaky); start it with “none” afterwards."},
     {"n": 6, "text": "It once suggested a refund larger than the order total.",
-     "reproduce": {"incident": "C"}, "retired": {"checkpoint": "02", "incident": "C"},
-     "watch": "00 believes the customer's $249.99 for a $24.99 order, is told to “be generous”, and nothing checks the amount. 02 looks the order up; rule 1 caps any refund at the total and sends an ask above the total to a human, and anything over $50 waits for approval."},
+     "reproduce": {"incident": "C"}, "retired": {"checkpoint": "03", "incident": "C"},
+     "watch": "00 believes the customer's $249.99 for a $24.99 order, is told to “be generous”, and nothing checks the amount. 02 looks the order up; rule 1 caps any refund at the total and sends an ask above the total to a human, and anything over $50 waits for approval (partial). 03 also grounds the amount in the retrieved policy, which retires it."},
     {"n": 7, "text": "Costs spike on long ticket threads.",
-     "reproduce": {"ticket_id": "T-1031"}, "retired": {"checkpoint": "03", "ticket_id": "T-1031"},
-     "watch": "Open “The prompt” on 00: every policy document is in every call. 03 retrieves six sections; 04 adds a per-run budget cap."},
+     "reproduce": {"ticket_id": "T-1031"}, "retired": {"checkpoint": "04", "ticket_id": "T-1031"},
+     "watch": "Open “The prompt” on 00: every policy document is in every call. 03 retrieves six sections instead; 04 adds the per-run budget cap, which retires it."},
     {"n": 8, "text": "The same ticket can produce different resolutions.",
-     "reproduce": {"incident": "C", "view": "repeat"}, "retired": {"checkpoint": "02", "incident": "C", "view": "repeat"},
-     "watch": "Use Repeat. 00 samples at temperature 1.0 with no schema. 02 runs at temperature 0 with a schema and rules; 04 gates releases on determinism_agreement."},
+     "reproduce": {"incident": "C", "view": "repeat"}, "retired": {"checkpoint": "02", "incident": "C", "view": "repeat", "partial": True},
+     "watch": "Use Repeat. 00 samples at temperature 1.0 with no schema. 02 runs at temperature 0 with a schema and rules, so the plan rarely moves; 04 measures it as determinism_agreement and gates releases on it. Partial on every scoreboard: a model is never same input, same output."},
     {"n": 9, "text": "A crash after issuing a refund left the ticket unresolved — and a retry refunded twice.",
      "reproduce": {"incident": "C"}, "retired": {"checkpoint": "02", "ticket_id": "T-1001"},
      "watch": "00 prints “refund issued!” with no record. 02 saves state after every node and sends an Idempotency-Key with every refund, so a resumed run cannot pay twice. To crash it for real: in Setup, start 02 with “crash after refund” and run T-1004 (a $45 refund, no gate); when the service dies, start it again without the flag and the run resumes on the page."},
     {"n": 10, "text": "Nobody can debug why a specific run failed.",
-     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "01", "incident": "A"},
-     "watch": "00 leaves no request ID, no log line, no error code. 01 writes one JSON line per event under a request_id; 02+ persist state and events in SQLite too."},
+     "reproduce": {"incident": "A"}, "retired": {"checkpoint": "04", "incident": "A"},
+     "watch": "00 leaves no request ID, no log line, no error code. 01 writes one JSON line per event under a request_id; 02 persists state and events in SQLite too (partial on the scoreboard from Session 4); 04's dashboard groups failures by code, which retires it."},
 ]
 
 app = FastAPI(title="Deskhand Lab")
@@ -360,6 +365,30 @@ MODEL_OPTIONS: dict[str, dict[str, str]] = {
     "sonnet": {"label": "Claude Sonnet", "var": "LAB_SONNET_MODEL", "default": "claude-sonnet-5"},
 }
 
+# The OpenAI-compatible providers the checkpoints accept (OPENAI_COMPATIBLE in
+# each llm.py, defaults copied from there). With one of them in LLM_PROVIDER,
+# the picker's first entry is that provider instead of GPT. key None = it runs
+# on the laptop and needs no key.
+COMPATIBLE: dict[str, dict[str, str | None]] = {
+    "gemini": {"label": "Gemini", "model_var": "GEMINI_MODEL",
+               "model": "gemini-3.5-flash-lite", "key": "GEMINI_API_KEY"},
+    "openrouter": {"label": "OpenRouter", "model_var": "OPENROUTER_MODEL",
+                   "model": "openrouter/free", "key": "OPENROUTER_API_KEY"},
+    "ollama": {"label": "Ollama", "model_var": "OLLAMA_MODEL", "model": "llama3.2", "key": None},
+    "lmstudio": {"label": "LM Studio", "model_var": "LMSTUDIO_MODEL",
+                 "model": "google/gemma-3-4b", "key": None},
+}
+
+
+def compatible_model(provider: str, env: dict[str, str]) -> str:
+    spec = COMPATIBLE[provider]
+    return env.get(spec["model_var"]) or spec["model"]
+
+
+def compatible_key_set(provider: str, env: dict[str, str]) -> bool:
+    key = COMPATIBLE[provider]["key"]
+    return key is None or _is_set(env.get(key))
+
 
 def claude_model(choice: str, env: dict[str, str] | None = None) -> str:
     """The Claude model id behind "haiku" or "sonnet": shell, then .env, then the default."""
@@ -371,10 +400,11 @@ MODEL_CHOICE: dict[str, str | None] = {"id": None}  # None = nothing picked yet:
 
 
 def _gpt_provider(env: dict[str, str]) -> str:
-    """The OpenAI-family provider .env is set up for: LLM_PROVIDER if it is one,
-    else whichever of Azure / OpenAI has a key."""
+    """The OpenAI-family provider .env is set up for: LLM_PROVIDER if it is one
+    (the compatible providers included), else whichever of Azure / OpenAI has
+    a key."""
     provider = (env.get("LLM_PROVIDER") or "azure").strip().lower()
-    if provider in ("azure", "openai"):
+    if provider in ("azure", "openai", *COMPATIBLE):
         return provider
     return "azure" if _is_set(env.get("AZURE_OPENAI_API_KEY")) else "openai"
 
@@ -421,11 +451,15 @@ def effective_env(checkpoint: str | None = None) -> dict[str, str]:
 def _model_options(env: dict[str, str]) -> list[dict]:
     """The picker's entries, each with the model it resolves to and whether its key is set."""
     gpt = _gpt_provider(env)
-    gpt_model = env.get("AZURE_OPENAI_DEPLOYMENT") if gpt == "azure" else (env.get("OPENAI_MODEL") or "gpt-4o-mini")
-    gpt_ready = (_is_set(env.get("AZURE_OPENAI_API_KEY")) and _is_set(env.get("AZURE_OPENAI_ENDPOINT"))
-                 if gpt == "azure" else _is_set(env.get("OPENAI_API_KEY")))
+    if gpt in COMPATIBLE:
+        gpt_label, gpt_model, gpt_ready = COMPATIBLE[gpt]["label"], compatible_model(gpt, env), compatible_key_set(gpt, env)
+    else:
+        gpt_label = "GPT"
+        gpt_model = env.get("AZURE_OPENAI_DEPLOYMENT") if gpt == "azure" else (env.get("OPENAI_MODEL") or "gpt-4o-mini")
+        gpt_ready = (_is_set(env.get("AZURE_OPENAI_API_KEY")) and _is_set(env.get("AZURE_OPENAI_ENDPOINT"))
+                     if gpt == "azure" else _is_set(env.get("OPENAI_API_KEY")))
     claude_ready = _is_set(env.get("ANTHROPIC_API_KEY"))
-    out = [{"id": "gpt", "label": "GPT", "provider": gpt, "model": gpt_model, "ready": gpt_ready}]
+    out = [{"id": "gpt", "label": gpt_label, "provider": gpt, "model": gpt_model, "ready": gpt_ready}]
     for cid in ("haiku", "sonnet"):
         out.append({"id": cid, "label": MODEL_OPTIONS[cid]["label"], "provider": "anthropic",
                     "model": claude_model(cid, env), "ready": claude_ready,
@@ -614,6 +648,127 @@ def resolve_ticket(ref: TicketRef) -> dict:
 # hung run can be killed, and no state leaks from one run into the next.
 # The wire format is in lab/runners/labproto.py: one JSON request on stdin,
 # NDJSON events on stdout, one terminal event last.
+#
+# Starting a runner costs seconds before the checkpoint runs a line: Python
+# imports the provider SDKs, thousands of files, slower still where an
+# antivirus scans each one. So the lab keeps the NEXT runner started: a warm
+# runner has imported those third-party packages (labproto.preload) and sits
+# blocked on stdin. A run takes one and a replacement starts behind it. It is
+# still one fresh process per run, and the checkpoint's own modules and .env
+# still load after the request, so nothing above changes.
+WARM_MAX = 3  # warm runners per key at most: Repeat keeps up to three runs in flight
+
+
+class _Runner:
+    """One runner process, with its stderr drained from the start so a chatty
+    import cannot fill the pipe while the runner waits in the pool."""
+
+    def __init__(self, argv: list[str], cwd: Path, env: dict[str, str]) -> None:
+        self.proc = subprocess.Popen(
+            argv, cwd=cwd, env=env,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.stderr_tail: list[str] = []  # the last 60 lines, reported if the runner dies without a terminal event
+        threading.Thread(target=self._drain, daemon=True).start()
+
+    def _drain(self) -> None:
+        for raw in self.proc.stderr:
+            self.stderr_tail.append(raw.decode("utf-8", errors="replace"))
+            del self.stderr_tail[:-60]
+
+    def alive(self) -> bool:
+        return self.proc.poll() is None
+
+    def kill(self) -> None:
+        if self.alive():
+            self.proc.kill()
+
+
+# Keyed by (checkpoint, runner script, model picker overrides): a runner gets
+# its env when it starts, so one started for another model pick is never used.
+_warm: dict[tuple, list[_Runner]] = {}
+_warm_busy: dict[tuple, int] = {}  # runs in flight per key
+_warm_lock = threading.Lock()
+
+
+def _runner_spec(checkpoint: str, runner: str | None) -> tuple[tuple, list[str], Path, dict[str, str]]:
+    """What a runner for this checkpoint starts with, and the pool key for it."""
+    cp = CHECKPOINTS[checkpoint]
+    script = RUNNERS / (runner or cp["runner"])
+    overrides = model_overrides(checkpoint)
+    # UTF-8 both ways on Windows; unbuffered so events arrive while the run is
+    # still going. The picker's overrides beat .env because the checkpoints'
+    # load_dotenv() never replaces a variable that is already set.
+    env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1", **overrides}
+    key = (checkpoint, script.name, tuple(sorted(overrides.items())))
+    # The lab's own interpreter (the venv); cwd is what makes `import llm` the checkpoint's llm.py.
+    return key, [sys.executable, str(script)], REPO / cp["dir"], env
+
+
+def _top_up(key: tuple, argv: list[str], cwd: Path, env: dict[str, str]) -> None:
+    """Start warm runners until the pool covers the runs in flight (1 to WARM_MAX)."""
+    while True:
+        with _warm_lock:
+            pool = _warm.setdefault(key, [])
+            pool[:] = [r for r in pool if r.alive()]
+            if len(pool) >= min(WARM_MAX, max(1, _warm_busy.get(key, 0))):
+                return
+        runner = _Runner(argv, cwd, env)  # outside the lock: starting a process takes a moment
+        with _warm_lock:
+            _warm.setdefault(key, []).append(runner)
+
+
+def _take_runner(checkpoint: str, runner: str | None) -> tuple[tuple, _Runner]:
+    """A warm runner for this run if one is ready, else a cold one; either way
+    a replacement starts in the background."""
+    key, argv, cwd, env = _runner_spec(checkpoint, runner)
+    taken = None
+    with _warm_lock:
+        for other in [k for k in _warm if k[:2] == key[:2] and k != key]:
+            for stale in _warm.pop(other):  # started for a model pick that is no longer current
+                stale.kill()
+        pool = _warm.setdefault(key, [])
+        while pool and taken is None:
+            candidate = pool.pop(0)
+            if candidate.alive():
+                taken = candidate
+        _warm_busy[key] = _warm_busy.get(key, 0) + 1
+    if taken is None:
+        taken = _Runner(argv, cwd, env)
+    threading.Thread(target=_top_up, args=(key, argv, cwd, env), daemon=True).start()
+    return key, taken
+
+
+def _release_runner(key: tuple) -> None:
+    """A run ended. Once none are in flight, one warm runner per key is enough."""
+    with _warm_lock:
+        _warm_busy[key] = max(0, _warm_busy.get(key, 0) - 1)
+        pool = _warm.get(key, [])
+        if not _warm_busy[key]:
+            for extra in pool[1:]:
+                extra.kill()
+            del pool[1:]
+
+
+def prewarm(checkpoints: tuple[str, ...] = ("00", "01")) -> None:
+    """Start a warm runner for each subprocess checkpoint, so the first run of
+    the class does not wait on imports either."""
+    for checkpoint in checkpoints:
+        if checkpoint in CHECKPOINTS and (REPO / CHECKPOINTS[checkpoint]["dir"]).is_dir():
+            key, argv, cwd, env = _runner_spec(checkpoint, None)
+            threading.Thread(target=_top_up, args=(key, argv, cwd, env), daemon=True).start()
+
+
+def _stop_warm() -> None:
+    """Stop every idle runner. Each would also exit by itself on stdin EOF."""
+    with _warm_lock:
+        for pool in _warm.values():
+            for runner in pool:
+                runner.kill()
+        _warm.clear()
+
+
+atexit.register(_stop_warm)
 
 
 def _first_error(events: list[dict]) -> str:
@@ -626,27 +781,11 @@ def _first_error(events: list[dict]) -> str:
 
 def _spawn(checkpoint: str, request: dict, stop: threading.Event | None = None,
            runner: str | None = None) -> Iterator[dict]:
-    """Run one runner subprocess; yield its NDJSON events (redacted).
+    """Run one runner subprocess (warm from the pool when one is ready); yield
+    its NDJSON events (redacted).
     runner: a runner other than the checkpoint's own (03's search-only mode)."""
-    cp = CHECKPOINTS[checkpoint]
-    # UTF-8 both ways on Windows; unbuffered so events arrive while the run is
-    # still going. The picker's overrides beat .env because the checkpoints'
-    # load_dotenv() never replaces a variable that is already set.
-    env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1",
-           **model_overrides(checkpoint)}
-    proc = subprocess.Popen(
-        # The lab's own interpreter (the venv); cwd is what makes `import llm` the checkpoint's llm.py.
-        [sys.executable, str(RUNNERS / (runner or cp["runner"]))],
-        cwd=REPO / cp["dir"], env=env,
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
-    stderr_tail: list[str] = []  # the last 60 lines, reported if the runner dies without a terminal event
-
-    def drain_stderr() -> None:
-        # Read stderr all the time so a chatty runner cannot fill the pipe and stall.
-        for raw in proc.stderr:
-            stderr_tail.append(raw.decode("utf-8", errors="replace"))
-            del stderr_tail[:-60]
+    key, taken = _take_runner(checkpoint, runner)
+    proc, stderr_tail = taken.proc, taken.stderr_tail
 
     def watchdog() -> None:
         # Kill the runner after RUN_TIMEOUT_S, or as soon as `stop` is set (the page went away).
@@ -657,10 +796,10 @@ def _spawn(checkpoint: str, request: dict, stop: threading.Event | None = None,
                 return
             time.sleep(0.2)
 
-    threading.Thread(target=drain_stderr, daemon=True).start()
     threading.Thread(target=watchdog, daemon=True).start()
     try:
-        proc.stdin.write(json.dumps(request).encode("utf-8"))
+        # lab_sent_at lets the runner report how long this run waited on it to start.
+        proc.stdin.write(json.dumps(dict(request, lab_sent_at=time.time())).encode("utf-8"))
         proc.stdin.close()  # the runner reads stdin to EOF, so closing it starts the run
         saw_terminal = False
         for raw in proc.stdout:
@@ -684,6 +823,7 @@ def _spawn(checkpoint: str, request: dict, stop: threading.Event | None = None,
     finally:
         if proc.poll() is None:
             proc.kill()
+        _release_runner(key)
 
 
 # --------------------------------------------------------------------- pricing
@@ -723,6 +863,19 @@ def _mock_base() -> str:
     return (_env().get("MOCK_ORDER_API_URL") or "http://localhost:9000").rstrip("/")
 
 
+# The local servers (mock API, 02–04, the lab) listen on 127.0.0.1 only. On
+# Windows "localhost" resolves to ::1 first, and a refused connection takes
+# about 2 s there before the next address is tried, so the lab's own requests
+# go to the IPv4 loopback directly. A local server that is up accepts in
+# milliseconds, so a short connect timeout only cuts the wait when it is down.
+LOCAL_TIMEOUT = httpx.Timeout(1.5, connect=0.3)
+
+
+def _loopback(url: str) -> str:
+    """url with a localhost host swapped for 127.0.0.1; any other host unchanged."""
+    return re.sub(r"^(https?://)localhost(?=[:/]|$)", r"\g<1>127.0.0.1", url)
+
+
 def lookup_order(order_id: str | None) -> dict | None:
     """Order facts for the lab's own annotations (00 never looks the order
     up — that's the point). Mock API first, the seed file as a fallback."""
@@ -730,7 +883,7 @@ def lookup_order(order_id: str | None) -> dict | None:
         return None
     base = _mock_base()
     try:
-        r = httpx.get(f"{base}/orders/{order_id}", timeout=1.5)  # short: an annotation must not hold up a trace
+        r = httpx.get(_loopback(f"{base}/orders/{order_id}"), timeout=LOCAL_TIMEOUT)  # an annotation must not hold up a trace
         if r.status_code == 200:
             o = r.json()
             return {"order_id": order_id, "total_usd": o.get("total_usd"), "source": f"GET {base}/orders/{order_id}",
@@ -1039,7 +1192,7 @@ def _service_spec(name: str) -> dict:
 def _probe_sync(url: str, timeout: float = 0.8) -> dict | None:
     """GET a JSON document; None if nothing answers or the answer is not 200 JSON."""
     try:
-        r = httpx.get(url, timeout=timeout)
+        r = httpx.get(_loopback(url), timeout=httpx.Timeout(timeout, connect=min(timeout, LOCAL_TIMEOUT.connect)))
         return r.json() if r.status_code == 200 else None
     except (httpx.HTTPError, ValueError):
         return None
@@ -2139,9 +2292,12 @@ def estimate(body: EstimateRequest) -> dict:
         raise HTTPException(422, f"at most {MAX_REPEAT} runs per batch")
     t = resolve_ticket(body)
     env = effective_env()
+    provider = (env.get("LLM_PROVIDER") or "azure").strip().lower()
     model = {"azure": env.get("AZURE_OPENAI_DEPLOYMENT"),
              "anthropic": env.get("ANTHROPIC_MODEL") or "claude-opus-5-5",
-             }.get((env.get("LLM_PROVIDER") or "azure").strip().lower(), env.get("OPENAI_MODEL"))
+             }.get(provider, env.get("OPENAI_MODEL"))
+    if provider in COMPATIBLE:
+        model = compatible_model(provider, env)
     prices = price_quote([model]).get(model or "", {}) if model else {}
     v1_model = _v1_llm(effective_env("00"))["model"]
     v1_prices = price_quote([v1_model]).get(v1_model or "", {}) if v1_model else {}
@@ -2269,6 +2425,10 @@ async def health() -> dict:
                "strong_deployment": env.get("ANTHROPIC_MODEL_STRONG") or None,
                "embedding_provider": env.get("EMBEDDING_PROVIDER") or "openai",
                "key_set": _is_set(env.get("ANTHROPIC_API_KEY")), "endpoint_set": True}
+    elif provider in COMPATIBLE:
+        llm = {"provider": provider, "deployment": compatible_model(provider, env),
+               "strong_deployment": env.get(COMPATIBLE[provider]["model_var"] + "_STRONG") or None,
+               "key_set": compatible_key_set(provider, env), "endpoint_set": True}
     else:
         llm = {"provider": provider, "deployment": env.get("OPENAI_MODEL") or None,
                "strong_deployment": env.get("OPENAI_MODEL_STRONG") or None,
@@ -2279,9 +2439,9 @@ async def health() -> dict:
     llm["runtime_env"] = env.get("DESKHAND_RUNTIME") or "plain"
 
     mock_base = _mock_base()
-    async with httpx.AsyncClient(timeout=0.8) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(0.8, connect=LOCAL_TIMEOUT.connect)) as client:
         probes = await asyncio.gather(
-            _probe(client, f"{mock_base}/openapi.json"),
+            _probe(client, _loopback(f"{mock_base}/openapi.json")),
             *[_probe(client, f"http://127.0.0.1:{p}/openapi.json") for p in SERVICE_PORTS],
         )
     mock_doc, service_docs = probes[0], probes[1:]
@@ -2365,8 +2525,10 @@ if __name__ == "__main__":
     import uvicorn
 
     print(f"Deskhand Lab on http://localhost:{LAB_PORT}  (Ctrl+C to stop)")
+    prewarm()
     try:
         # 127.0.0.1 only: anyone who can reach this port can spend the API key.
         uvicorn.run(app, host="127.0.0.1", port=LAB_PORT, log_level="warning")
     finally:
         _stop_all_managed()  # Ctrl+C: stop what the lab started (atexit is the backstop)
+        _stop_warm()

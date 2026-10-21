@@ -202,6 +202,8 @@ blockquote {
 .slide.home > h2::before { content: "TRY THIS TONIGHT"; background: var(--yellow); }
 .slide.demo { border-left: 12px solid var(--green); }
 .slide.demo > h2::before { content: "LIVE DEMO"; background: var(--green); }
+/* The badge already says it: a "Live demo" kicker on a demo slide would show twice. */
+.slide.demo > h2 .kicker { display: none; }
 .slide.check { border-left: 12px solid var(--blue); }
 .slide.check h2 .kicker { background: var(--blue); }
 .slide.check > h2::before { content: "QUICK CHECK"; background: var(--blue); }
@@ -330,6 +332,7 @@ code, kbd {
   font-size: 0.82em;
   color: var(--code-fg);
 }
+code.nowrap { white-space: nowrap; }   /* a short inline sample that must stay on one line */
 kbd {
   background: var(--code-bg);
   border: 1px solid var(--muted);
@@ -364,6 +367,8 @@ tr:nth-child(even) td { background: var(--surface); }
 /* ---- layout helpers ---- */
 .cols { display: flex; gap: 48px; align-items: flex-start; }
 .cols > * { flex: 1; min-width: 0; }
+/* a wide code column beside a narrow explanation (Session 2, slide 20) */
+.cols.code-wide > :first-child { flex: 2.2; }
 .center { text-align: center; }
 .muted { color: var(--muted); }
 .accent { color: var(--green); }
@@ -430,4 +435,90 @@ body.show-notes .slide.current .notes::before {
 
 @media (prefers-reduced-motion: reduce) {
   #deck-progress { transition: none; }
+}
+
+/* ---- reading notes: <aside class="learn"> ----
+   Plain-language notes for students reading the deck on their own after class.
+   Never shown on the slide itself: deck.js copies the current slide's note into
+   #deck-learn and shrinks the slide (a fixed 1600x900 stage) to fit beside it.
+   On by default in the students' copy (<html data-copy="student">, added by
+   release/release.py); 'n' toggles it, ?learn=1 previews it here. */
+.slide aside.learn { display: none; }
+body.learn .deck {
+  inset: auto;
+  top: 0;
+  left: 0;
+  width: 1600px;
+  height: 900px;
+  transform-origin: 0 0;
+}
+body.learn #deck-counter { display: none; }   /* the panel shows the slide number */
+#deck-learn { display: none; }
+body.learn #deck-learn {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  z-index: 35;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 17px;
+  line-height: 1.6;
+}
+body.learn-side #deck-learn {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: clamp(320px, 30vw, 480px);
+  border-left: 3px solid var(--green);
+}
+body.learn-bottom #deck-learn {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36vh;
+  border-top: 3px solid var(--green);
+}
+#deck-learn .learn-head {
+  padding: 18px 24px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+#deck-learn .learn-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 12px;
+}
+#deck-learn .learn-body p { margin: 0 0 0.75em; }
+#deck-learn .learn-body ul,
+#deck-learn .learn-body ol { margin: 0 0 0.75em; padding-left: 1.2em; }
+#deck-learn .learn-body li { margin: 0.25em 0; }
+#deck-learn .learn-body code {
+  font-size: 0.92em;
+  background: var(--bg);
+  color: var(--code-fg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+#deck-learn .learn-body b,
+#deck-learn .learn-body strong { color: var(--white); }
+#deck-learn .learn-body .answer {
+  border-left: 3px solid var(--blue);
+  background: var(--tint-blue);
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+}
+#deck-learn .learn-body .answer::before {
+  content: "Answer: ";
+  font-weight: 700;
+  color: var(--blue);
+}
+#deck-learn .learn-body .empty { color: var(--muted); }
+#deck-learn .learn-foot {
+  padding: 10px 24px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
 }

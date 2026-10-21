@@ -34,9 +34,10 @@ python incidents.py
 ```
 
 v1 only knows **Azure and OpenAI** (its provider setup was "copied off a blog
-post"). With `LLM_PROVIDER=anthropic` it falls through to its OpenAI branch and
-uses `OPENAI_API_KEY` and `OPENAI_MODEL`, so Session 1 needs an OpenAI or Azure
-key. You need one from checkpoint 03 on anyway: Claude has no embeddings API.
+post"). With any other `LLM_PROVIDER` it falls through to its OpenAI branch and
+uses `OPENAI_API_KEY` and `OPENAI_MODEL`. To run it on Gemini, OpenRouter, Ollama
+or LM Studio anyway, point those OpenAI settings at the other server for one
+terminal; [LLM_PROVIDERS.md](../../LLM_PROVIDERS.md) shows how.
 
 `incidents.py` runs three demo tickets, each mapped to the Session 1 incident list
 (the "Current Problems" table in the capstone brief):

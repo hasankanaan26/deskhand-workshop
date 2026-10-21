@@ -844,9 +844,10 @@
         var r = inc.retired, b2;
         if (r.available === false) {
           // This copy of the repo doesn't have the fixing checkpoint yet.
-          b2 = el("span", "muted small", "Retired on " + r.checkpoint + ", which arrives in a later session");
+          b2 = el("span", "muted small", (r.partial ? "Narrowed on " : "Retired on ") + r.checkpoint + ", which arrives in a later session");
         } else {
-          b2 = el("button", "btn btn-sm btn-primary", "See it retired on " + r.checkpoint + " · " + specLabel(r) + (r.view === "repeat" ? " (Repeat)" : ""));
+          // partial: the checkpoint narrows the incident but the decks keep it open.
+          b2 = el("button", "btn btn-sm btn-primary", (r.partial ? "See it narrowed on " : "See it retired on ") + r.checkpoint + " · " + specLabel(r) + (r.view === "repeat" ? " (Repeat)" : ""));
           b2.type = "button";
           b2.onclick = function () { go(r, r.checkpoint); };
         }

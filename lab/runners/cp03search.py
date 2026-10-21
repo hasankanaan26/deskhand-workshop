@@ -36,6 +36,12 @@ import traceback
 
 import labproto
 
+# Third-party packages 03's llm, ingest and retrieve import, loaded while the
+# runner waits warm (labproto.preload).
+PRELOAD = ("openai", "anthropic", "tiktoken", "dotenv", "pydantic", "numpy", "qdrant_client",
+           "langchain_core.documents", "langchain_openai", "langchain_anthropic", "langchain_qdrant",
+           "langchain_text_splitters")
+
 
 def _embed_info(llm, usage, started: float) -> dict:
     """The embedding side of every answer: provider, model, tokens, cost, runner time."""
@@ -189,6 +195,7 @@ MODES = {"search": search, "distance": distance, "map": map_index}  # probe take
 
 
 def main() -> None:
+    labproto.preload(PRELOAD)
     req = labproto.read_request()
     ch = labproto.Channel()
     labproto.use_checkpoint_dir()

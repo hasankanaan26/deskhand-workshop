@@ -17,7 +17,7 @@ python incidents.py
 ```
 
 Run it three times. Write down the refund amount for ticket C each time. How much did the
-bot's mood swing cost Nimbus? Bring the three numbers on Wednesday; they open the session.
+bot's randomness cost Nimbus? Bring the three numbers on Wednesday; they open the session.
 
 Run it from its own folder. From anywhere else, `bot.py` loads zero policies and still
 answers, which is a silent failure worth seeing once.
@@ -59,7 +59,8 @@ ways and fill in the table:
 | Ticket + all six policies | | | | |
 
 Cost = tokens × price ÷ 1,000,000. Prices are in `PRICE_TABLE` in
-`checkpoints/01-triage/llm.py`. Expect roughly 60, 480 and 2,400 prompt tokens. For this
+`checkpoints/01-triage/llm.py`: use the row for the model you called (step 2 uses
+gpt-4o-mini). Expect roughly 60, 480 and 2,400 prompt tokens. For this
 ticket the refund policy helps; the other five add cost and little else. That gap is why
 Week 3 exists.
 
