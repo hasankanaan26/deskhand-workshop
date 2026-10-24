@@ -1,8 +1,9 @@
 /* Deskhand Lab — the views: Run, Compare, Repeat, Incidents; routing; boot. */
 
 /* Loaded last, because it wires the buttons in index.html and boots the page
-   with everything the other files put on L. It owns the four tabs and the
-   hash routes (#run, #compare, #repeat, #incidents, #run/<lab run_id>).
+   with everything the other files put on L. It owns the five tabs and the
+   hash routes (#run, #compare, #repeat, #incidents, #run/<lab run_id>, and
+   #logs?<filters>, whose view lives in logs.js).
 
    A run, end to end: startRun() builds the body (ticket + checkpoint
    options), L.report() lays out an empty Simple / Detailed pair, and
@@ -18,7 +19,7 @@
   "use strict";
   var S = L.S, $ = L.$, el = L.el, add = L.add, usd = L.usd, money = L.money, ms = L.ms, num = L.num, jsonish = L.jsonish, panel = L.panel;
 
-  var VIEWS = ["run", "compare", "repeat", "incidents"];
+  var VIEWS = ["run", "compare", "repeat", "incidents", "logs"];
   // 02, 03 and 04 are HTTP services; 00 and 01 run as a subprocess per run.
   // Checkpoint ids are two-digit strings, so string comparison orders them.
   var isSvc = function (cp) { return cp >= "02"; };
@@ -138,9 +139,14 @@
   // server, which keeps the last 300 traces in memory until it restarts.
   // So a projected #run/<id> link survives F5, but not a lab restart.
 
+  // Logs is about every checkpoint at once, so it hides the ticket picker and
+  // the selected-ticket strip (body.view-logs in lab.css) and stops its live
+  // tail when another view opens.
   function setView(v) {
     S.view = v;
     VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
+    document.body.classList.toggle("view-logs", v === "logs");
+    if (v !== "logs") L.logs.hide();
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i++) {
       var on = tabs[i].dataset.view === v;
@@ -163,13 +169,21 @@
       });
       return;
     }
+    // #logs carries its filters after a "?" (#logs?svc=04&level=warn), so a
+    // projected link opens the same view.
+    if (h.split("?")[0] === "logs") {
+      setView("logs");
+      L.logs.show(h);
+      return;
+    }
     setView(VIEWS.indexOf(h) !== -1 ? h : "run");
   }
 
   window.addEventListener("hashchange", route);
   var tabEls = document.querySelectorAll(".tab");
   for (var ti = 0; ti < tabEls.length; ti++) {
-    tabEls[ti].onclick = function () { location.hash = this.dataset.view; };
+    // Back to Logs keeps the filters it had.
+    tabEls[ti].onclick = function () { location.hash = this.dataset.view === "logs" ? L.logs.hash() : this.dataset.view; };
   }
 
   // Compare and Repeat link to a run's full report through the router.
@@ -193,7 +207,7 @@
   // A Compare column can be "04+nemo": checkpoint 04 with a chosen input guard.
   function colCp(key) { return String(key).split("+")[0]; }
   function colGuard(key) { return String(key).split("+")[1] || null; }
-  var GUARD_LABEL = { heuristic: "regex + classifier", nemo: "NeMo Guardrails" };
+  var GUARD_LABEL = { heuristic: "pattern guard", nemo: "NeMo guard" };
   function colName(key) {
     var g = colGuard(key);
     return L.cpName(colCp(key)) + (g ? " · " + GUARD_LABEL[g] : "");
@@ -293,6 +307,18 @@
 
   $("follow-btn").onclick = startFollow;
   $("follow-id").onkeydown = function (e) { if (e.key === "Enter") startFollow(); };
+
+  // The Logs view's "Open in Run": the same Follow, on that run's checkpoint.
+  L.followRun = function (cp, rid) {
+    if (!isSvc(cp) || S.busy.run) return;
+    S.cp = cp;
+    L.renderCards();
+    renderRunControls();
+    updateHints();
+    $("follow-id").value = rid;
+    location.hash = "run";
+    startFollow();
+  };
 
   /* ── Search only (checkpoint 03) ───────────────────────────
      03's own retrieve() on a bare query, in a runner subprocess. The 03
