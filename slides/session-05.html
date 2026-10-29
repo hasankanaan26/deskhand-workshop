@@ -23,6 +23,9 @@
   <h1>Tools at Work</h1>
   <p class="subtitle">One refund, paid once: idempotency in practice. Then the use cases worth building, and what tool calling looks like inside a company</p>
   <p class="session-meta">Session 5 · Week 2 · Wednesday, October 28, 2026</p>
+  <aside class="learn">
+    <p>Session 5 of the Deskhand workshop, in three parts. First, a crash at the worst moment, right after a refund is sent, and why the customer is still paid only once. Then which jobs are worth handing to an LLM at all. Then what tool calling looks like inside a company.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -33,6 +36,10 @@
     <li><strong>Which use cases are worth it.</strong> Three questions, the product team's version, and one job taken from idea to design.</li>
     <li><strong>What it looks like at work.</strong> Five jobs, the platforms, build or buy, and what production adds.</li>
   </ol>
+  <aside class="learn">
+    <p>The tool-calling pre-read (<code>handouts/session-05-preread.html</code>) covered how a model asks for a tool and how Deskhand's two tools work, so class started where it stopped. The three ideas are the three blocks of the session. <b>One refund, paid once</b>: what happens when the service dies right after paying a customer. <b>Which use cases are worth it</b>: a quick way to score an idea before anyone builds it. <b>What it looks like at work</b>: the jobs, the products and what a real deployment adds.</p>
+    <p>The incidents in play are two from Session 1's list: #5, the order API misbehaves, and #9, the double refund.</p>
+  </aside>
 </section>
 
 <section class="slide check">
@@ -44,6 +51,10 @@
     <li>You can't tell from here.</li>
   </ol>
   <div class="callout example" data-label="T-1058, a real worry"><p>"Your agent confirmed a $45 refund on chat last Tuesday… I don't want it processed twice, just want to know it's actually coming."</p></div>
+  <aside class="learn">
+    <p>Deskhand has sent the $45 refund for T-1004's keyboard, order O-51877, and waited five seconds with no reply. Its HTTP client gives up and raises a timeout error. The question is what that error tells you about the order API on the other end.</p>
+    <p class="answer">Option 3, you can't tell. A timeout only means no reply arrived in time. The server may never have received the request, or it may have paid the refund and the reply got lost on the way back. Option 1 is tempting because an exception feels like "nothing happened", but the exception only happened on your side. Retry blindly and you may pay twice; don't retry and you may pay nothing. The mock order API's timeout mode does exactly this: it waits, then issues the refund anyway. T-1058 is a customer in the dataset with the same worry.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -77,6 +88,10 @@
     <div class="card bad"><h4>Deskhand's saved run</h4><p>Refund step: not done yet.</p></div>
   </div>
   <p class="small">Two records now disagree. Running the step again is the <em>dangerous</em> option, unless repeating the refund is harmless.</p>
+  <aside class="learn">
+    <p>Session 4 crashed the service <i>between</i> steps, after the refund step had been saved, so the restarted run carried on at the reply. This crash lands <i>inside</i> the step: the refund has been sent, but the run hasn't been saved yet. Now two records disagree. The order API has paid $79.99; Deskhand's saved run says the refund step never finished.</p>
+    <p>Recovery trusts the saved run, so it runs the refund step again and sends a second refund request. Saving after every step doesn't help, because the save comes at the end of the step and the crash came first. Think of paying the plumber by bank transfer and your phone dying before you note it down: tomorrow your notes say unpaid. The switch <code>DESKHAND_CRASH_AFTER_REFUND</code> in <code>nodes.py</code> kills the process at exactly this point.</p>
+  </aside>
 </section>
 
 <section class="slide demo">
@@ -88,6 +103,11 @@
   </ol>
   <div class="callout info" data-label="Clue"><p>Every refund request carries a key, built from the saved run. The pre-read's refund tool says what a repeated key gets: "the original refund instead of paying twice".</p></div>
   <div class="callout watch" data-label="Your vote"><p>When it's over, how many refunds does the order API hold for this run? <strong>One or two?</strong></p></div>
+  <aside class="learn">
+    <p>The crash from the last slide, run for real. The service runs T-1004 ($45) or T-1048 ($50.00), both small enough to skip the approval gate. Right after the refund request goes out, the process kills itself, before the run is saved. On restart, Deskhand finds the unfinished run and does the refund step again, so the order API receives two refund requests.</p>
+    <p>The clue: every refund request carries a key, and the key is built from the saved run. The restarted run builds it from the same saved run. The next slide names the idea.</p>
+    <p class="answer">One. Two requests reached the order API, and it paid once: both carried the same key, so the second got the first refund back. In <code>logs/runs.jsonl</code> you see <code>refund.issued</code> twice, with <code>crash.injected</code> and <code>run.resumed</code> between them, both with the same refund id and the same key.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -100,6 +120,10 @@
     <tr><td>After the crash</td><td><code>3fa9c2e1b7d0:0</code>, rebuilt</td><td class="good">known key: returns R-1a2b3c4d, pays nothing</td></tr>
   </table>
   <p class="small">Deskhand's <strong>idempotency key</strong> is the run's id plus the action's place in the plan, so a restart rebuilds the same one.</p>
+  <aside class="learn">
+    <p>An action is <b>idempotent</b> when doing it twice has the same effect as doing it once. Setting <code>x = 5</code> twice still leaves 5; adding 5 twice doesn't. Reading an order is idempotent by nature; creating a refund is not. An <b>idempotency key</b> fixes that: a name sent with the write, so "make a refund" becomes "make refund <code>3fa9c2e1b7d0:0</code>", which can only exist once.</p>
+    <p>Two sides make it work. The server, here the mock order API, stores every key with the refund it produced, and returns the stored refund when a key comes back. The client, Deskhand, must send the identical key after a crash, so it builds the key only from things it saved: the run's id and the action's place in the plan (<code>:0</code> is the first action). Stripe and most payment APIs work this way.</p>
+  </aside>
 </section>
 
 <section class="slide demo">
@@ -112,6 +136,10 @@
     <tr><td>4 · The proof</td><td><code>tests/test_idempotent_refund.py</code></td><td><code>execute_actions</code> twice on one run: two POSTs, one refund. Offline, under a second</td></tr>
   </table>
   <div class="callout watch"><p>LangGraph doesn't save you: it saves state after a node returns, so a crash inside the node runs it again. Only the key makes that harmless (<code>graph_lg.py</code>, tonight's stretch).</p></div>
+  <aside class="learn">
+    <p>Four places to look, in order, to see the key at work. <b>The key</b>: line 507 of <code>nodes.py</code> builds it from the run's id and the action's index. Nothing random and nothing from the model, so a restart rebuilds the same string. <b>The server</b>: lines 135 to 141 of <code>shared/mock_order_api/app.py</code> refuse a refund with no key (HTTP 400) and return the stored refund for a key they have seen. <code>GET /refunds</code> on port 9000 shows how many POSTs each key received. <b>The run</b>: the lab report's "Persisted state" shows the same request id, key and refund id before and after the restart. <b>The proof</b>: <code>tests/test_idempotent_refund.py</code> runs the refund step twice on one run, offline, and finds two POSTs and one refund.</p>
+    <p>The warning box: LangGraph saves state after a node returns, so a crash inside a node runs that node again. It knows where to resume; it can't make the repeat harmless.</p>
+  </aside>
 </section>
 
 <section class="slide demo">
@@ -124,6 +152,10 @@
   </ol>
   <div class="callout info" data-label="Test each key on three cases"><p>① A crash and restart. ② The retry runs on a different model. ③ A genuine second refund on the same order, next month.</p></div>
   <p>Then I swap in key 1 and crash the same way. One refund or two?</p>
+  <aside class="learn">
+    <p>Four ways to build the key. Test each one against the three cases on the slide: does it stay the same after a crash, does it stay the same if the retry uses a different model, and does a genuine second refund next month still go through?</p>
+    <p class="answer">Option 2, the run's id plus the action's place in the plan. Option 1 is new on every attempt, so the restarted run sends a key the API has never seen, and it pays again. Option 3 depends on the model: the same ticket gave <code>refund-O-51877-1</code> from gpt-4.1-mini and <code>refund-O-51877-full-return</code> from claude-haiku-5-5. Option 4 survives a crash, but next month's genuine $45 refund on the same order would get last month's refund back. With option 1 swapped in, the same crash leaves two refunds: two different refund ids in the log for one $45 keyboard.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -135,11 +167,18 @@
   </div>
   <p>Underneath all three: retry what might recover, and give every failure a name.</p>
   <blockquote>The model proposes. The system decides.</blockquote>
+  <aside class="learn">
+    <p>Deskhand now has three separate safeguards on every refund, and each answers a different question. <b>Rules</b> (<code>rules.py</code>): is the plan allowed at all? For example, no more than the order total, on the customer's own order. <b>The approval gate</b>: does a person accept it? Every refund over $50 and every replacement waits for a yes. <b>The idempotency key</b>: if anything crashes or retries, does the money move exactly once?</p>
+    <p>Underneath all three: retry only failures that might go away, and give every failure a name in the log. To check yourself: T-1006's $10,000 refund is stopped by the rules, the double refund after a crash by the key, and a valid $79.99 refund nobody looked at by the gate. The same split holds for any AI system that acts: the model proposes, the system decides.</p>
+  </aside>
 </section>
 
 <section class="slide lead">
   <h1>Break · 10 minutes</h1>
   <p class="subtitle">Next: which jobs are worth handing to an LLM, and what tool calling looks like at work</p>
+  <aside class="learn">
+    <p>The halfway point. The first half was code: one refund, paid once. The second half has none. It asks which jobs are worth handing to an LLM, and what tool calling looks like at a company. Keep one task from your own job in mind; tonight's first step uses it.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -149,6 +188,10 @@
     <div class="card"><h4>Give it to an LLM</h4><ul><li>What is this customer upset about?</li><li>Which policy section applies here?</li><li>Write a kind reply in plain words.</li></ul><p>Messy language in, language out.</p></div>
   </div>
   <div class="callout watch"><p>If a few lines of code can do it, an LLM only adds cost, delay and a way to be wrong.</p></div>
+  <aside class="learn">
+    <p>Before choosing a model, look at the job. The left card is arithmetic, rules and lookups: is $79.99 at most the order total, is it over $50, what's in order O-48291. Code does these exactly, for free, and each one can be tested. The right card is language: what the customer is upset about, which policy section applies, a kind reply. That is what an LLM is for.</p>
+    <p>Deskhand has worked this way since Session 2. The model writes a plan, and <code>rules.py</code>, plain Python, decides whether its $79.99 is allowed. A useful habit: when someone proposes AI for a task, ask whether it is really a lookup or a rule. If a few lines of code can do it, the model only adds cost, delay and a way to be wrong.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -160,6 +203,10 @@
   </div>
   <div class="callout example" data-label="Score each one 0, 1 or 2"><p><strong>6</strong> is strong. <strong>3 or less</strong> usually isn't worth building. Review asks <strong>when</strong> someone looks; Check asks <strong>how long</strong> looking takes.</p></div>
   <div class="callout watch"><p>If a wrong answer can't be undone, don't let an LLM act on it alone.</p></div>
+  <aside class="learn">
+    <p>Three questions to score any idea for an LLM, each 0, 1 or 2. <b>Volume</b>: does the job happen often enough to be worth automating? <b>Review</b>: does a person see the risky step before it takes effect? <b>Check</b>: is checking the result much quicker than doing the job yourself? Review and check sound alike. Review is about <i>when</i> someone looks; check is about <i>how long</i> looking takes. If checking takes as long as doing, nothing was saved.</p>
+    <p>A total of 6 is strong; 3 or less is usually not worth building. The scale is a rule of thumb for discussion, not a formula. The red box is the one hard rule: if a wrong answer can't be undone, the LLM never acts on it alone. A refund can't be undone, so Deskhand checks the rules before every one, and a person approves those over $50.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -172,6 +219,10 @@
     <tr><td>Score</td><td class="good"><b>6 / 6</b></td><td class="warn"><b>4 / 6</b></td><td class="bad"><b>0 / 6</b></td></tr>
   </table>
   <p>The middle one becomes worth building if every answer shows where it came from.</p>
+  <aside class="learn">
+    <p>The three questions applied to three ideas. Deskhand scores 6: dozens of tickets a day, a person approves every refund over $50, and the three-line plan takes seconds to check. The mortgage idea scores 0, each for its own reason: a loan officer handles only a few a day, the model's yes would reach the customer unchecked and a loan can't be taken back, and checking means going through the whole application again.</p>
+    <p>The HR bot sits in the middle at 4. It answers many questions, but each answer reaches the employee unchecked, and they may act on it before HR sees it. That's a 1, not a 0, because a wrong answer can be corrected later. Checking is quick only if the answer shows the policy line it came from, and that one change is what would make it worth building. Scores are worth arguing about: a reasoned disagreement is the useful part.</p>
+  </aside>
 </section>
 
 <section class="slide check">
@@ -183,6 +234,10 @@
     <li>Summarise a 300-page contract for the lawyer who must sign it.</li>
   </ol>
   <p>For each one: volume, review, check, or none?</p>
+  <aside class="learn">
+    <p>Four ideas. For each one, which of the three questions does it fail: volume, review, check, or none?</p>
+    <p class="answer">1, none: 2,000 reviews a day, and a wrong tag is quick to spot, so it's a strong candidate. 2, volume: four letters a year is not worth automating. 3, review: nobody sees a closed ticket, so a real customer wrongly marked as spam just disappears. If a person skimmed the spam folder every day it would pass, so the score depends on the design, not only the idea. 4, check: the lawyer does see the summary, but trusting it means reading all 300 pages anyway.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -193,6 +248,10 @@
   </div>
   <div class="callout watch"><p>Mortgage approval: a big RICE score at a bank, and still 0 on the three questions.</p></div>
   <p class="small">RICE picks which idea to fund. The three questions tell you if it will still work with a model inside.</p>
+  <aside class="learn">
+    <p>Product teams often rank ideas with <b>RICE</b>, from Intercom's product team: Reach (how many a month), Impact (how much each one gains), Confidence (how sure you are of those two guesses) and Effort (person-months to build). Reach × Impact × Confidence ÷ Effort; the biggest number goes first.</p>
+    <p>Reach is our volume question. What RICE never asks is where LLM projects fail: does a person see it first, is it quick to check, what can't be undone? Mortgage approval shows why you need both: a bank could give it a big RICE score, and it still scores 0 on the three questions. RICE's confidence is about the reach and impact guesses, not about whether the model is right; that's the check question. For Deskhand, a RICE sheet would get effort most wrong: the model call takes a week, the rules, the gate, the key and the tests much longer.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -207,6 +266,10 @@
     <tr><td>Charge the late fee</td><td>code, gated</td><td>contract</td><td><span class="bad">money</span></td><td>a cap; a person above a limit</td></tr>
   </table>
   <p class="small">The <span class="blue">model</span> only handles language. Numbers stay in code. A person stands before what <span class="bad">can't be taken back</span>. This table is §1 and §2 of your design doc; next, you fill one in.</p>
+  <aside class="learn">
+    <p>The move that turns a job into a design: don't hand the whole job to a model. Split it into steps and ask four questions of each. Who does it, code or the model? What does it read? What does it write? How is a mistake caught?</p>
+    <p>In the late-invoices example, finding late invoices is a database query, so it's code. Reading customer emails and drafting the reminder are language, so they go to the model (blue), each with its own check: a weekly sample, and code that verifies the amount. The red rows write things that can't be taken back, an email and a charge, so a person stands in front of both. A good first step to automate is the label: it only reads, it's quick to check, and it shows how good the model is before anything is sent. Tonight's use-case card is a small version of this table.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -221,6 +284,10 @@
     <tr><td>Report drafting</td><td>data sources</td><td>a draft, not the send</td><td>a person sends it</td><td>numbers trace to sources</td></tr>
   </table>
   <p class="small"><span class="good">Writes nothing</span>: no gate, only citations. <span class="bad">Can't be undone</span>: a person approves it first.</p>
+  <aside class="learn">
+    <p>Five jobs companies give to an LLM with tools, through the same questions. Read the Writes column first, because what a job changes decides whether it needs a gate. Red means it can't be undone.</p>
+    <p>Deskhand writes a refund, so a person approves anything over $50. Invoice reminders send emails and charges, so a person approves every charge. Code migration writes a pull request: the tests are the first gate and a reviewer the second. Internal search writes nothing, so it needs no gate; each answer cites its source, and the citation is the check. Report drafting writes only a draft, and a person sends it. The pattern: writes nothing, no gate; writes something that can't be undone, a person approves it first. The finance word for chasing unpaid invoices is <b>dunning</b>.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -263,6 +330,10 @@
     <tr><td>MCP server</td><td>One plug for tools: wrap a tool once, and any AI app can use it. Deskhand's two tools would be one MCP server.</td><td>Claude, ChatGPT, Copilot, Cursor, VS Code, Gemini</td></tr>
     <tr><td>Platform</td><td>What companies buy to host it all: connectors, a login per tool, a policy before writes, a log.</td><td>Microsoft Foundry, Copilot Studio, Bedrock AgentCore, Agentforce</td></tr>
   </table>
+  <aside class="learn">
+    <p>Four names you will hear at work, placed on one Deskhand request. Start from Deskhand in the middle of the diagram. To the left, the model call goes through a <b>gateway</b>: one door for every model call in a company, which holds the API keys, caps each team's spending and logs every call. Deskhand's <code>llm.py</code> calls the provider directly; at work you would point it at the gateway.</p>
+    <p>The model replies using <b>function calling</b>: a request to run a tool, in the same shape across providers. To the right, the tool can sit behind an <b>MCP server</b> (Model Context Protocol), a standard plug that lets any AI app use a tool you wrapped once. Around it all, a <b>platform</b> is what companies buy to host the pieces: connectors, logins, policies and logs. When someone pitches a product, find its row in the table.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -276,6 +347,10 @@
     <tr><td>Stays yours</td><td><span class="hl">the rules, the gate, the key, the evals</span></td><td><span class="hl">the same</span></td><td><span class="hl">the same</span>, in your code, so you can leave</td></tr>
     <tr><td>Watch out</td><td>you build saving and resuming yourself</td><td>updates break your code; it won't stop a retry paying twice</td><td>hard to leave; check which actions it really blocks</td></tr>
   </table>
+  <aside class="learn">
+    <p>Three ways to build the same thing. Pick by the "Fits when" row, not by company size. <b>Just the API</b>, plus your own code, fits one fixed workflow with a few tools and your own gate. That is Deskhand. The catch: saving and resuming runs is yours to build. <b>A framework or SDK</b> such as LangGraph gives you the loop, save points and a pause for a person, which matters when the model picks the steps. The catch: updates can break your code, and it won't stop a retry paying twice. <b>A platform</b> such as Microsoft Foundry or Bedrock AgentCore gives you logins, connections to company systems, hosting and logs. The catch: it's hard to leave, so check which actions it really blocks.</p>
+    <p>Whichever you pick, the green row stays yours: the rules, the gate, the key and the <b>evals</b>, the tests that show the system still gives right answers.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -291,6 +366,10 @@
     <tr><td>Evals as the gate</td><td>known test cases must pass before a deploy</td><td>Sessions 9 and 10</td></tr>
     <tr><td>Rollout</td><td>run it quietly first, then a few users, then all; a way back</td><td>Session 11</td></tr>
   </table>
+  <aside class="learn">
+    <p>A checklist for taking any LLM project live, with where Deskhand stands on each. <b>Identity</b>: each tool logs in as its own service account with only the rights it needs. The mock order API has no login, a gap left on purpose. <b>Rules and sign-off</b>: code decides what's allowed, a person signs above a limit, and the signature is logged. Deskhand has both. <b>Safe retries</b>: time limits, retrying only errors that might go away, and a key on every write. That was today.</p>
+    <p>The other rows aren't in Deskhand yet: a budget per run and per day, with one switch that stops every write; <b>tracing</b>, every step of one run found by its id; evals that must pass before a deploy; and a <b>rollout</b> that starts in shadow mode, where the new system runs beside the old one and nobody acts on its output.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -303,6 +382,10 @@
     <div class="card"><h4>The evals</h4><p>Proof it still works after a change.</p><p class="muted">Week 4</p></div>
   </div>
   <div class="callout watch" data-label="When a job is dangerous"><p>Three danger signs: it reads private data, it reads text from strangers (a ticket, an email), and it can send something out. All three together? Put a gate and a log in before anyone builds it. Deskhand has all three.</p></div>
+  <aside class="learn">
+    <p>A platform can host your safeguards, but only you know your refund policy, your limits and your data, so four things stay in your own code. <b>The rules</b>: is this request allowed? <b>The gate</b>: who signs, and above what amount? <b>The key</b>: every write carries one, built from saved state. <b>The evals</b>: proof it still works after a change.</p>
+    <p>The red box is a danger check for any idea. Does it read private data? Does it read text from strangers, like a ticket or an email? Can it send something out? With all three, one crafted message can trick the system into sending private data away. Simon Willison calls the three together the <b>lethal trifecta</b>. Deskhand has all three, which is why it has rules, a gate and a log. Internal search, from slide 17, has no way out, until someone adds "send".</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -313,6 +396,11 @@
     <li><strong>At work, the platforms sell the plumbing.</strong> Logins, links to company systems, logs. The rules, the gate, the key and the evals stay yours, whatever you buy.</li>
   </ol>
   <blockquote>Which layer stops it? Take the worst thing a use case could do, and name what catches it: a rule, the gate, the key, or a check. If nothing does, don't build it yet.</blockquote>
+  <aside class="learn">
+    <p>The three ideas in one line each. One refund, paid once: a key built from saved state and remembered by the server; the framework decides where to resume, the key decides whether resuming is safe. Score the job before the model: volume, review, check and what can't be undone, then split it into steps. At work, platforms sell the plumbing; the rules, the gate, the key and the evals stay yours.</p>
+    <p>The question to carry into any meeting is in the quote. A layer here means a safeguard (a rule, the gate, the key or a check), not the gateway or MCP from the map. Try it on the HR bot from slide 13: it answers wrongly and someone acts on it. Which layer stops it?</p>
+    <p class="answer">None yet: nothing checks an answer before someone acts on it. Making every answer show the policy line it used adds the check, and that check is the layer.</p>
+  </aside>
 </section>
 
 <section class="slide scoreboard">
@@ -330,6 +418,10 @@
     <tr><td>9 <span class="tag retired">RETIRED</span></td><td>Double refund after a crash</td><td>The refund key is rebuilt from the saved run, so a resumed run gets the first refund back.</td><td>today</td></tr>
     <tr><td>10 <span class="tag partial">PARTIAL</span></td><td>Can't debug a run</td><td>Every run's state and events are saved and found by request ID. No dashboard yet.</td><td>S4</td></tr>
   </table>
+  <aside class="learn">
+    <p>Session 1's ten incidents, with how each was fixed: five retired, three partly fixed, two untouched. Today retired #5, the order API misbehaving: every failure gets a retry policy and a name, and a 200 with no order total fails rule 1. It also retired #9, the double refund after a crash: the refund key is rebuilt from the saved run. #1 is retired because the plan must fit the schema <code>ResolutionPlan</code> and then pass <code>rules.py</code>.</p>
+    <p>Partly fixed: #4, because order API calls retry by error type but a model timeout still ends the run; #6, because refunds are capped at the order total but nothing checks them against the policy text; #10, because every run can be found by its request ID but there is no dashboard. #7 (cost spikes) and #8 (different answers for the same ticket) are untouched.</p>
+  </aside>
 </section>
 
 <section class="slide home">
@@ -340,11 +432,18 @@
     <li>Stretch: the same crash on the LangGraph version of the service (LangGraph is a library that runs the same steps for you).</li>
   </ol>
   <p>Step by step after the "After class" divider, and in <code>handouts/session-05.md</code>, with links to go further. Skipped the pre-read's "Try it yourself"? The gate and the chaos modes are there.</p>
+  <aside class="learn">
+    <p>Tonight is optional and takes about 35 minutes. Step 1, the use-case card, needs only paper: one task from your own job, scored on the three questions, with what it writes and what can't be undone. Keep it; it becomes the first section of a design doc. Step 2 repeats the crash from class with your own hands, then breaks the key to watch the double refund come back. Step 3 is a stretch on LangGraph, a library that runs the same steps for you.</p>
+    <p>The steps are on the slides after the "After class" divider and in <code>handouts/session-05.md</code>, with links to go further. If you skipped the pre-read's "Try it yourself", its approval-gate and chaos-mode runs are there too.</p>
+  </aside>
 </section>
 
 <section class="slide lead">
   <h1>After class</h1>
   <p class="subtitle">Reference slides and tonight's steps. Not shown in class: open them when you have the repo.</p>
+  <aside class="learn">
+    <p>Nothing after this slide was shown in class. It's reference: the pre-read's slides on tool calling, the approval gate and the chaos modes, the code behind the retry and the key, LangGraph, links to go deeper, then tonight's three steps. Read them with the repo open.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -356,6 +455,10 @@
     <div class="card"><h4>Write: issue_refund</h4><p><code>POST /refunds</code>. Sent twice, the customer is paid twice. A retry can't take money back.</p></div>
   </div>
   <p class="small">Today's targets: incident #5, <em>the order API misbehaves</em>, and #9, <em>the double refund</em>.</p>
+  <aside class="learn">
+    <p>A <b>tool</b> is a function in your code that can be run on the model's behalf. Deskhand has two, and the difference between them drives the whole session. <code>lookup_order</code> is a <b>read</b>: <code>GET /orders/O-48291</code> fetches data and changes nothing. Ask twice and nothing changes; if it fails, Deskhand just knows less. <code>issue_refund</code> is a <b>write</b>: <code>POST /refunds</code> moves money. Send it twice and the customer may be paid twice, and a retry can't take money back.</p>
+    <p>Both tools are defined in <code>checkpoints/02-service/nodes.py</code> and call the mock order API on port 9000. The incidents they bear on are #5, the order API misbehaves, and #9, the double refund.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -370,6 +473,10 @@
     <tr><td>Tonight</td><td><code>checkpoints/02-service</code></td><td>Your use-case card, the crash, one stretch</td></tr>
   </table>
   <p>Today your code decides when each tool runs.</p>
+  <aside class="learn">
+    <p>The whole session on one page, for reading at home. The pre-read covered tool calling, and its slides follow this one so they sit next to the code. Topics 1 to 3 are the three blocks from class: the double refund and the key, how to score and split a use case, and the enterprise side. LangGraph is reference only. Tonight's steps all run in <code>checkpoints/02-service</code>.</p>
+    <p>The line at the bottom is the thread through all of it: in Deskhand, your code decides when each tool runs, never the model.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -381,6 +488,10 @@
     <div class="card"><h4>Today's service</h4><p>Refund $249.99, refund $24.99, or no refund and pass it to a person?</p></div>
   </div>
   <p class="small">Try it: the lab's Compare, ticket "Incident C", checkpoints 00 and 02, the gate on auto-reject.</p>
+  <aside class="learn">
+    <p>Ticket C is from Session 1: a customer asks for $249.99 back for a fitness band that, according to the order system, cost $24.99. Ten times the real price. The two cards ask what v1, the broken bot in <code>checkpoints/00-broken-bot</code>, does with it, and what today's service in <code>checkpoints/02-service</code> does.</p>
+    <p class="answer">v1 refunds about $249.99. It never looks at the order, so the model's text sets the amount. Today's service looks up O-46633, sees a $24.99 total and a request above it, and hands the ticket to a person: no refund at all. It doesn't refund $24.99 either. When a customer asks for more than the order total, the code escalates instead of shrinking the amount. In the lab, Compare with ticket "Incident C", checkpoints 00 and 02, and the gate on auto-reject shows both side by side.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -388,6 +499,10 @@
   <div class="callout plain"><p>With <strong>tool calling</strong>, you send the model a list of tools it may ask for. Instead of plain text, it can reply with a request: <em>look up order O-48291</em>. The model never runs anything. Your code reads the request and decides whether to run it.</p></div>
   <div class="callout analogy"><p>The model fills in a request form: "refund $79.99 on order O-48291". Your code is the finance desk: it checks the form against the records, and over $50 a manager signs it first (Monday's gate). A filled-in form is not a payment.</p></div>
   <p>Deskhand goes one step further: the model only writes a plan, and code calls both tools.</p>
+  <aside class="learn">
+    <p>With <b>tool calling</b>, you send the model a list of tools it may ask for. Instead of plain text, it can reply with a request: a piece of JSON naming a tool and its arguments, such as "look up order O-48291". "The model calls a function" is a figure of speech: the model never runs anything. Your code reads the request and decides whether to run it.</p>
+    <p>The finance-desk picture: the model fills in a request form, your code checks it against the records, a manager signs the big ones, and only then is anything paid. So if the form says $10,000, your code is what stops it. Deskhand goes one step further: the model doesn't write tool requests at all. It writes a plan, and code calls both tools itself, in <code>fetch_order_data</code> and <code>execute_actions</code> in <code>nodes.py</code>.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -402,6 +517,10 @@
     <li>The description is the only manual the model reads. It decides when the model picks the tool.</li>
   </ul>
   <div class="callout watch"><p>The model can invent an order id or a negative amount. Check tool arguments like any untrusted user input.</p></div>
+  <aside class="learn">
+    <p>This JSON is what the model actually sees for one tool. The <b>schema</b> (<code>parameters</code>) is the form's layout: the fields, their types and which are required, the same kind of schema as in Session 2. The <b>description</b> is the only manual the model reads, and it decides when the model picks the tool. A vague description makes the model pick the wrong tool, or none.</p>
+    <p>In <code>nodes.py</code> the refund tool has a third field, the idempotency key, whose description reads: "Stable per run and action; a retry with the same key returns the original refund instead of paying twice." The warning box: tool arguments are model output, so the model can invent an order id or a negative amount. Check them like any untrusted user input. And no schema can tell you whether a request is allowed.</p>
+  </aside>
 </section>
 
 <section class="slide check">
@@ -414,6 +533,10 @@
     <li>The business rule: a refund can't exceed the order total</li>
     <li>Nothing. The mock API pays it.</li>
   </ol>
+  <aside class="learn">
+    <p>T-1006 is a prompt-injection ticket: text written to make the model ignore its instructions. Suppose the model obeys, and its plan asks for a $10,000 refund on O-61402, a $29.99 order.</p>
+    <p class="answer">Option 3, the business rule. Rule 1 in <code>rules.py</code> compares the refund with the order total and refuses the plan. Options 1 and 2 are tempting after Session 2, but they only check shape: the order id matches the pattern and 10000 is above zero, so both pass. A schema says what a valid form looks like, never whether the request is allowed. Option 4 is what would happen with no rules: the mock order API pays any request that carries a key. Two more checks would catch it too: T-1006 comes from Alex Mercer but O-61402 is Yusuf Demir's, which rule 1 also checks, and $10,000 is over $50, so the gate would hold it.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -447,6 +570,10 @@
   </svg>
   </div>
   <p class="small">Three of the four steps are your code. Only step 2 is the model, and its output is a request written as JSON.</p>
+  <aside class="learn">
+    <p>The <b>tool-calling loop</b>, in four steps. 1: your code sends the conversation and the schemas of the tools the model may use. 2: the model chooses, and its output is a request written as JSON: call <code>lookup_order</code> with this order id. 3: your code runs the tool. It checks the arguments, calls the order API with a time limit, retries, and turns failures into error codes. 4: your code sends the result back, and the model continues with real data. The loop repeats until the model answers without asking for a tool.</p>
+    <p>Three of the four boxes are green, your code. Only step 2 is the model, and step 3 is where this session's engineering lives. Deskhand's workflow skips steps 1 and 2: its code calls the tools directly, at fixed points.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -460,6 +587,10 @@
     <tr><td>5</td><td>model → code</td><td><code>issue_refund {"order_id": "O-48291", "amount_usd": 79.99, "idempotency_key": …}</code>, with a key it made up</td></tr>
     <tr><td>6</td><td>code</td><td>Decides. Deskhand: 79.99 ≤ the order total, but it's over $50, so a person must approve</td></tr>
   </table>
+  <aside class="learn">
+    <p>The loop from the last slide with real values, for O-48291. Step 2 is the one to notice: the model sends back a request, and nothing has run yet. In step 3 your code calls the order API and gets Dana Whitfield's order: AirBeat headphones, total $79.99, delivered 12 days ago. Step 4 hands that JSON back, labelled with the id of the request it answers. In step 5 the model asks for the refund and makes up its own key, which would be useless after a crash. In step 6 your code decides: $79.99 is within the total but over $50, so a person must approve.</p>
+    <p>This is the loop when the model drives. Deskhand's workflow skips steps 1 and 2: <code>fetch_order_data</code> finds O-48291 in the ticket text with a regular expression and calls <code>lookup_order</code> itself.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -485,6 +616,10 @@ llm.chat_model().bind_tools(TOOLS)</code></pre>
     <li><code>@tool</code> turns the class into that JSON, and checks arguments <em>before</em> any HTTP call.</li>
     <li>Two callers: a node calls <code>.invoke</code> (today), or the model gets <code>TOOLS</code>.</li>
   </ul>
+  <aside class="learn">
+    <p>The refund tool as it appears in <code>nodes.py</code>, with the body left out. The Pydantic class is the schema: the order id must match <code>O-</code> followed by digits, the amount must be above zero, and the key can't be empty. Each field's description is sent to the model too. LangChain's <code>@tool</code> decorator turns the class into the JSON from slide 30 and checks the arguments <i>before</i> any HTTP call. The retries and error codes inside the body are still ordinary code.</p>
+    <p>The last lines show the two ways a tool can be called. A node calls <code>issue_refund.invoke(...)</code> directly, which is what Deskhand's <code>execute_actions</code> does. Or the tools are handed to the model with <code>bind_tools(TOOLS)</code>, and the model asks for them. In <code>nodes.py</code> that second line is only a comment; no node does it. Which of the two lines runs is the difference between a workflow and an agent.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -501,6 +636,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
     <li><code>issue_refund</code> <strong>moves money</strong>. It is checked, gated and sent with a key.</li>
     <li>The mock API is <code>shared/mock_order_api</code>: port 9000, no login, 20 seeded orders. O-48291 is the $79.99 headphones.</li>
   </ul>
+  <aside class="learn">
+    <p>The two endpoints of the mock order API in <code>shared/mock_order_api</code>: port 9000, no login, 20 seeded orders in <code>orders_seed.json</code>. <code>GET /orders/{order_id}</code> returns the customer, items, total, status and delivery date. A 404 is a normal answer, not a crash: "order not found" usually means a typo in the ticket. <code>POST /refunds</code> moves money, and its <code>Idempotency-Key</code> header is required: no key, no refund.</p>
+    <p>So <code>lookup_order</code> is safe to retry and safe to fail; at worst the plan has less to go on. <code>issue_refund</code> is checked by the rules, held by the gate when needed, and sent with a key. <code>GET /refunds</code> lists every refund the mock holds, with its key and <code>post_count</code>, the number of POSTs that key received. The list empties when the mock restarts.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -509,6 +648,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
   <div class="callout analogy"><p>An expense report. Under $50, the system pays it. Over $50, a manager signs first.</p></div>
   <blockquote>"Refunds <strong>above $50.00</strong> require approval by a support team lead or manager before the refund is issued." <span class="muted">(the store's refund policy)</span></blockquote>
   <p class="small">T-1001, the $79.99 headphones, waits. T-1004, the $45 keyboard, goes straight through.</p>
+  <aside class="learn">
+    <p>An <b>approval gate</b> is a point where the run stops and waits for a person to say yes or no. Nothing after it runs until they answer. It starts as a business rule: the store's refund policy (<code>shared/policies/refund-policy.md</code>, "Approval Thresholds") already says a team lead or manager must approve any refund above $50.00. Deskhand only enforces it, with <code>AUTO_APPROVE_LIMIT_USD = 50.0</code> in <code>rules.py</code>.</p>
+    <p>So T-1001, the $79.99 headphones, waits, and T-1004, the $45 keyboard, goes straight through. A replacement always needs approval, whatever it costs. And "no" is a normal ending, not an error: the customer gets a reply that promises nothing.</p>
+  </aside>
 </section>
 
 <section class="slide check">
@@ -521,6 +664,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
     <tr><td>T-1001</td><td>O-48291, AirBeat headphones</td><td>$79.99</td></tr>
   </table>
   <p class="small">Assume each plan refunds the full price, as the customer asked. Which runs wait for a person? Then run one: the pre-read's "Try it yourself".</p>
+  <aside class="learn">
+    <p>Four tickets close to the $50 line. Assume each plan refunds the full price, as the customer asked.</p>
+    <p class="answer">T-1049 ($50.01) and T-1001 ($79.99) wait for a person; T-1004 ($45.00) and T-1048 ($50.00) go straight through. The rule is <code>refund_amount_usd &gt; 50.0</code>, strictly greater, because the policy says refunds <i>above</i> $50.00 need approval. T-1048 is the one people get wrong, because they remember "$50 needs approval". Orders O-70022 and O-70031 exist in the mock data to test exactly this edge. Two exceptions you may see: T-1001's customer would also take a replacement, and a replacement always waits; and the model can mark any plan as needing approval itself, so T-1048 sometimes stops too.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -534,6 +681,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
     <tr><td>inconsistent</td><td>200 OK, but the order total is missing</td><td>a bad deploy that changed the response</td></tr>
   </table>
   <p class="small">Deskhand's answer, from Monday's reference slides: wait 5 s per try, three tries, a longer pause before each, then give up with a name (16.5 s worst case). Retry a timeout or a 500. Never retry a 404: "order not found" is an answer.</p>
+  <aside class="learn">
+    <p>A <b>chaos mode</b> is a switch that makes the mock order API fail on purpose, so incident #5 becomes repeatable. Four modes: <b>timeout</b> waits 30 seconds before answering, <b>error</b> always returns 500, <b>flaky</b> returns 500 half the time, and <b>inconsistent</b> returns 200 OK with the order total missing. Inconsistent is the worst in production: no alarm fires on a 200.</p>
+    <p>Deskhand's answer to the others is the retry on slide 40: up to 5 seconds per try, three tries, a longer pause before each, then give up with a named error, 16.5 seconds at worst. Retry a timeout or a 500, things that may go away on their own. Never retry a 404: "order not found" is an answer, and asking again gets the same one.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -546,6 +697,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
     <tr><td>returns 200, no order total</td><td>The business rule refuses any refund: "cannot verify the refund amount"</td><td>business rule failed</td></tr>
   </table>
   <div class="callout watch"><p>A 200 doesn't prove the data is right. Check what a tool returns, not only its status code.</p></div>
+  <aside class="learn">
+    <p>Each kind of failure gets its own reaction and its own name in the log. A timeout or a 500, three times in a row, ends the run with a calm message to the customer, logged as <code>TOOL_ORDER_API_TIMEOUT</code> or <code>TOOL_ORDER_API_ERROR</code>. A 404 is an answer, so Deskhand logs <code>order.not_found</code> and carries on without order data; with no order the plan can't refund, so it asks for details or escalates.</p>
+    <p>The last row is the one people miss. The API says 200 OK, but the order total is missing. A check on the status code says "fine". Only a check on the content stops the refund: rule 1 can't verify the amount, so it refuses with <code>VALIDATION_BUSINESS_RULE_FAILED</code>. Deskhand never refunds an order it couldn't see.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -584,6 +739,10 @@ POST /refunds   {order_id, amount_usd}   header: Idempotency-Key (REQUIRED)
     <div class="card good"><h4>Try again</h4><p>No answer in time, a dropped connection, a 500 from the server.</p></div>
     <div class="card bad"><h4>Don't</h4><p>A 404, "order not found". That's an answer: asking again gets the same one.</p></div>
   </div>
+  <aside class="learn">
+    <p>A <b>timeout</b> is how long you wait for one call before giving up on it. Deskhand waits 5 seconds per try, tries three times, and pauses longer before each new try: half a second, then a full second. Like calling a busy shop: wait, call again, wait a bit longer, call once more, then give up. The worst case is 3 × 5 s + 0.5 s + 1 s = 16.5 s, then one calm sentence for the customer.</p>
+    <p>Retry what might go away on its own: no answer in time, a dropped connection, a 500. Don't retry a 404. The code is in <code>nodes.py</code>: three constants near the top and the loop in <code>_order_api_call</code>. Both tools share that loop, so the refund POST is retried too, and the idempotency key is what makes that safe.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -597,6 +756,10 @@ for attempt in range(ORDER_API_RETRIES + 1):   # nodes.py, _order_api_call
         time.sleep(ORDER_API_BACKOFF_S[attempt - 1])
     ...                                  # timeout or 5xx: note the code, try again
     return response                      # 2xx or 4xx: that's an answer</code></pre>
+  <aside class="learn">
+    <p>A <b>retry with backoff</b> tries again after a pause, and pauses longer each time, so a struggling server gets room to recover. Three constants set it up: a 5-second timeout per try, 2 retries after the first try (three tries in all), and pauses of 0.5 and 1.0 seconds before tries 2 and 3. In the loop, a timeout, a connection error or a 5xx status notes an error code and goes round again. A 2xx or a 4xx returns at once, because that's an answer.</p>
+    <p>A 404 isn't retried because asking again for an order that doesn't exist gets the same answer. When all three tries fail, the call ends with a named error, <code>TOOL_ORDER_API_TIMEOUT</code> or <code>TOOL_ORDER_API_ERROR</code>. A 4xx on the refund becomes <code>TOOL_ORDER_API_ERROR</code> with "refund rejected" in the detail.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -610,6 +773,10 @@ for attempt in range(ORDER_API_RETRIES + 1):   # nodes.py, _order_api_call
   <p class="small">T-1004 makes two calls, a lookup and a refund, so a whole run fails 1 − (7/8)² ≈ 23%: about 1 run in 4.</p>
   <div class="callout example" data-label="Timeout mode, worked out"><p>3 tries × 5 s, plus pauses of 0.5 s and 1.0 s = <strong>16.5 s</strong> on paper before <code>TOOL_ORDER_API_TIMEOUT</code>. On Windows, <code>localhost</code> adds about 2 s per try.</p></div>
   <div class="callout watch"><p>In flaky mode the refund POST fails half the time too, and gets retried. Retrying a payment is safe only if the server can tell it's the same payment.</p></div>
+  <aside class="learn">
+    <p>In flaky mode each try fails half the time, independently of the others. Three failures in a row is ½ × ½ × ½ = 12.5%, so about 1 call in 8 still fails after three tries. T-1004 makes two calls, a lookup and a refund, so a whole run succeeds (7/8)² ≈ 77% of the time and fails about 23%: about 1 run in 4. Retries make failures rarer, never impossible, so the failure path still needs its error code and its sentence for the customer.</p>
+    <p>Timeout mode: 3 tries of 5 seconds plus pauses of 0.5 and 1.0 seconds is 16.5 seconds on paper. On Windows, connecting to <code>localhost</code> adds about 2 seconds per try, so expect around 23. The warning box: in flaky mode the refund POST also fails half the time and is retried. That's safe only because the server can tell, by the key, that it's the same payment.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -625,6 +792,10 @@ refund = issue_refund.invoke({
     <li>Same input, same output: a resumed run rebuilds the <em>same</em> key from saved state. Every write tool needs a key built this way.</li>
     <li>Replay the crash: <code>execute_actions</code> runs again, the API knows the key, and returns the first refund. <strong>Money moves once.</strong></li>
   </ul>
+  <aside class="learn">
+    <p>The fix in code, from <code>execute_actions</code> in <code>nodes.py</code> (line 507). The key is the run's <code>request_id</code>, made once when the ticket was submitted and saved with the run, plus <code>index</code>, the action's position in the saved plan. So <code>3fa9c2e1b7d0:0</code> is the first action of run <code>3fa9c2e1b7d0</code>. It's sent to the order API as the <code>Idempotency-Key</code> header.</p>
+    <p>Same input, same output: a resumed run rebuilds the identical string from saved state, without needing to remember that it ever sent anything. Replay the crash: <code>execute_actions</code> runs again, the API recognises the key and returns the first refund. Money moves once. The rule to take away: every write tool needs a key built only from saved state. A random value made fresh on each attempt gives no protection across a crash.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -637,6 +808,10 @@ refund = issue_refund.invoke({
     <tr><td>Money out</td><td class="good"><strong>$79.99</strong></td><td class="bad"><strong>$159.98</strong></td></tr>
   </table>
   <div class="callout example" data-label="The test that proves it"><p><code>tests/test_idempotent_refund.py</code> runs <code>execute_actions</code> twice on one run and asserts <code>refund_post_count == 2</code> but one stored refund.</p></div>
+  <aside class="learn">
+    <p>Read the table across. Both columns send two POSTs for T-1001's $79.99: the first run sends the refund, then come the crash, the restart and a second send. The only difference is the key in the header. With the run's key, the second POST carries <code>3fa9c2e1b7d0:0</code> again, the mock recognises it and returns the same refund, R-1a2b3c4d: one refund, $79.99. With a fresh <code>uuid4()</code> the second POST looks like a new request, so the mock pays again: a new refund id, two refunds, $159.98 out. The ids and keys on this slide are made up for the example.</p>
+    <p>The test at the bottom proves it offline in about a second: <code>py -m pytest tests/test_idempotent_refund.py</code> in <code>checkpoints/02-service</code>.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -651,6 +826,10 @@ refund = issue_refund.invoke({
     <tr><td>4</td><td>Actions fit the category</td><td>A refund on a <code>shipping_delay</code> ticket</td></tr>
   </table>
   <p class="small">A plan that breaks a rule gets up to 2 repair attempts, then <code>REPAIR_EXHAUSTED</code>. It never reaches <code>execute_actions</code>.</p>
+  <aside class="learn">
+    <p><code>rules.py</code> checks every plan before anything runs; <code>validate_plan</code> calls it each time a plan is written. Rule 1 is about the order: a refund needs order data, must be no more than the total, and the order must belong to the customer who wrote the ticket. T-1042 is Jordan Whitfield asking about Dana's order. A request above the total is escalated, never shrunk: T-1027, the $24.99 band plus $300, ends in an escalation with <code>VALIDATION_BUSINESS_RULE_FAILED</code>.</p>
+    <p>Rule 2 sends a plan to a person: over $50, a replacement, or an amount different from what the customer asked. Rule 3 escalates any plan with confidence under 0.5. Rule 4 checks the actions fit the ticket's category, so a <code>shipping_delay</code> ticket gets no refund. A plan that breaks a rule gets up to two repair attempts, then fails with <code>REPAIR_EXHAUSTED</code>; it never reaches <code>execute_actions</code>.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -694,6 +873,10 @@ refund = issue_refund.invoke({
   </svg>
   </div>
   <p class="small">The run waits in the database with <code>approval_status = "pending"</code>. It survives a restart and resumes on the POST, minutes or days later. "No" is a normal ending, not an error.</p>
+  <aside class="learn">
+    <p>The gate is one more stop in Session 4's state machine, built from its parts: a saved status, one endpoint and one event. <code>validate_plan</code> decides a person is needed. <code>approval_gate</code> sets the status to <code>awaiting_approval</code> and sends the <code>approval.required</code> event, which the lab and the console show as an approval card. The run then waits as a row in the database, with <code>approval_status = "pending"</code>. It survives a restart and resumes on the POST, minutes or days later.</p>
+    <p><code>POST /runs/{id}/approve</code> with <code>{"approved": true}</code> resumes at <code>execute_actions</code>, which sends the refund with its key. <code>false</code> skips to <code>draft_customer_reply</code>, which says a specialist will follow up and promises no refund. The lab's Approve and Reject buttons call this same POST, and a POST on a run that isn't waiting gets a 409.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -705,6 +888,10 @@ refund = issue_refund.invoke({
     <div class="card"><h4>interrupt()</h4><p><code>PAUSE</code>: stop here until a person answers.</p></div>
   </div>
   <p class="small">Session 4 built all three by hand. <code>graph_lg.py</code> hands them to LangGraph, and <code>nodes.py</code> doesn't change.</p>
+  <aside class="learn">
+    <p><b>LangGraph</b> is a Python library that runs a graph of steps for you. You give it the nodes and where each can go next; it runs the loop, saves the state after every step, and can pause a run until a person answers. Session 4 did all three by hand in <code>graph.py</code>. A <code>StateGraph</code> is the dict of nodes plus the while loop. A <b>checkpointer</b> is <code>save_state</code> done for you after every step, like a save point in a game. <code>interrupt()</code> is Deskhand's <code>PAUSE</code> under another name.</p>
+    <p>LangGraph is the runner, not the logic: <code>graph_lg.py</code> wraps the same nodes, and <code>nodes.py</code> doesn't change. Set <code>DESKHAND_RUNTIME=langgraph</code>, or use Start · LangGraph in the lab's Setup, to run the service on it. Its checkpoints go to <code>runs.langgraph.db</code>.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -719,6 +906,10 @@ refund = issue_refund.invoke({
     <tr><td><code>resume_stuck_runs</code> restarts at <code>next_node</code></td><td><code>invoke(None)</code> on <code>thread_id = request_id</code></td></tr>
   </table>
   <p class="small">Still ours: the nodes, <code>rules.py</code>, the idempotency keys, the event log behind the live stream, and the runs table that <code>GET /runs/{id}</code> reads.</p>
+  <aside class="learn">
+    <p>Each left cell is something from <code>graph.py</code>; the right cell is its LangGraph name in <code>graph_lg.py</code>. A node returning the next node's name becomes <code>Command(update=..., goto=...)</code>. Saving after every node becomes a <code>SqliteSaver</code> checkpoint. <code>PAUSE</code> becomes <code>interrupt(...)</code>, and resuming after approval becomes <code>invoke(Command(resume=approved))</code>. Restarting stuck runs becomes <code>invoke(None)</code> on the run's thread, whose id is the request id.</p>
+    <p>What stays Deskhand's own matters more: the nodes, <code>rules.py</code>, the idempotency keys, the event log and the runs table. LangGraph knows where to continue a run. It doesn't know whether a refund is safe to repeat. <code>await_approval</code> is its own node because a resumed node re-runs from the top: with <code>interrupt()</code> inside the gate, <code>approval.required</code> would fire twice.</p>
+  </aside>
 </section>
 
 <section class="slide">
@@ -729,6 +920,10 @@ refund = issue_refund.invoke({
     <div class="card"><h4>Safe writes, and the risks</h4><p>Stripe's idempotent requests. The transactional outbox and the saga pattern. OWASP's Top 10 for LLM applications: "excessive agency". Willison's lethal trifecta.</p></div>
   </div>
   <p class="small">Every link is in <code>handouts/session-05.md</code>, under "Going further".</p>
+  <aside class="learn">
+    <p>Three piles of reading, all linked in <code>handouts/session-05.md</code> under "Going further". Tool calling per provider: OpenAI, Anthropic and Gemini document the same schema shape under different names, and LangChain's <code>@tool</code> wraps all three. MCP and the platforms: start at modelcontextprotocol.io and its server registry, then read each platform's governance page before its demo, because that page says what you still own.</p>
+    <p>Safe writes and the risks: Stripe's idempotent requests are the pattern Deskhand copies. The <b>transactional outbox</b> saves a write and its record in one transaction, then sends; a <b>saga</b> is a chain of writes with an undo for each. You need them once a run writes to two systems. OWASP's "excessive agency" entry and Willison's lethal trifecta post cover the risks.</p>
+  </aside>
 </section>
 
 <section class="slide home">
@@ -740,6 +935,10 @@ refund = issue_refund.invoke({
     <tr><td>3 · stretch</td><td>Run the same service on LangGraph; repeat step 2</td><td>15 min</td></tr>
   </table>
   <p class="small">Step 1 needs paper. The rest: the lab (<code>py lab\server.py</code>, then Setup: the mock API, and checkpoint 02 with Start · plain) and one terminal in <code>checkpoints\02-service</code> for the log search.</p>
+  <aside class="learn">
+    <p>Tonight's plan, about 35 minutes, all optional. Step 1, the use-case card, needs only paper. Step 2 repeats the crash from class and counts the refunds. Step 3, the stretch, runs the same service on LangGraph.</p>
+    <p>For steps 2 and 3 you need the lab: run <code>py lab\server.py</code> from the repo root, open <code>http://localhost:8010</code>, and in Setup start the mock API and checkpoint 02 with Start · plain. Keep one terminal open in <code>checkpoints\02-service</code> to search the log. Every run costs well under a cent, so run things twice if you're unsure what you saw.</p>
+  </aside>
 </section>
 
 <section class="slide home">
@@ -755,6 +954,10 @@ Volume 0-2 / Review 0-2 / Check 0-2  =  __ / 6</code></pre>
     <li>Bring it Friday, when we decide which shape each job needs: one prompt, a chain, a workflow, or an agent.</li>
     <li>Then score your capstone the same way. That becomes §1 of your design doc: <em>why this problem, why this shape</em>.</li>
   </ul>
+  <aside class="learn">
+    <p>The card is a one-task version of the step table on slide 16. Write one task from your own job in one sentence. Then who asks for it, what it needs to look up, what it changes in the world (or "nothing"), and the step that can't be undone, with who signs it. Score it 0 to 2 on volume, review and check.</p>
+    <p>Most cards land at 4 or less, and that's the filter working: it stops weak projects before they cost a quarter. A task that writes nothing and is cheap to check is the easiest first project. A task whose write can't be undone needs a workflow with a gate, never a model acting alone. Keep the card. Scored the same way, your capstone idea becomes section 1 of your design doc: why this problem, and why this shape.</p>
+  </aside>
 </section>
 
 <section class="slide home">
@@ -772,6 +975,10 @@ Select-String refund.issued logs\runs.jsonl</code></pre>
     <li>Now cheat: in <code>execute_actions</code>, use <code>uuid.uuid4().hex</code> as the key (add <code>import uuid</code>). Repeat. Two refund ids: the customer was paid twice. Put it back.</li>
     <li>If T-1004 stops at the gate on your model, reject it and use T-1048: an approved run that crashes is not resumed.</li>
   </ul>
+  <aside class="learn">
+    <p>The crash from class, by hand. <code>DESKHAND_CRASH_AFTER_REFUND=1</code> makes the service kill itself right after the refund is sent and before the run is saved: the exact moment of incident #9. Submit T-1004, the $45 keyboard, which needs no approval. Then clear the switch and start the service again: recovery finds the unfinished run and re-runs <code>execute_actions</code>. If the lab's own checkpoint 02 is running, stop it in Setup first, so only one copy of the service runs.</p>
+    <p>What to expect: two <code>refund.issued</code> lines in <code>logs\runs.jsonl</code>, one <code>refund_id</code>. The same key got the same refund back. Then swap the key for <code>uuid.uuid4().hex</code> and repeat: two refund ids, $90 out for a $45 keyboard. Zero refunds after the swap means <code>import uuid</code> is missing. Put the line back afterwards. The offline version is <code>tests/test_crash_after_refund.py</code>.</p>
+  </aside>
 </section>
 
 <section class="slide home">
@@ -782,6 +989,10 @@ Select-String refund.issued logs\runs.jsonl</code></pre>
     <li>Repeat step 2. <strong>Predict first:</strong> does LangGraph stop <code>execute_actions</code> from running twice?</li>
     <li>Draw the graph from the code: <code>py -c "import graph_lg; print(graph_lg.build().compile().get_graph().draw_mermaid())"</code> and paste it into any Mermaid viewer.</li>
   </ul>
+  <aside class="learn">
+    <p><code>graph_lg.py</code> puts every node from <code>nodes.NODES</code> on a LangGraph <code>StateGraph</code> through one wrapper; read it next to <code>graph.py</code>. Restart the service with <code>$env:DESKHAND_RUNTIME="langgraph"</code>, or Start · LangGraph in the lab, and repeat step 2. The last command prints the graph as Mermaid text: paste it into any Mermaid viewer, such as mermaid.live, to see the nodes and edges. A misspelled node name makes <code>compile()</code> fail before any ticket runs.</p>
+    <p class="answer">No. LangGraph saves a checkpoint after a node returns, so a crash inside <code>execute_actions</code> runs that node again: two POSTs, as in step 2. You still get one refund, but because of the idempotency key, not LangGraph. The framework decides where to resume; the key makes resuming safe.</p>
+  </aside>
 </section>
 
 </main>
