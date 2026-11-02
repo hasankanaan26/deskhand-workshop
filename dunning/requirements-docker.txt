@@ -1,0 +1,17 @@
+# What the dunning engine imports, and nothing else: the image skips the repo's
+# RAG and eval stack. The pins follow ../requirements.txt.
+openai>=2.45,<3
+anthropic>=1.0
+langchain-core>=1.0,<2
+langchain-openai>=1.0,<2
+langchain-anthropic>=1.0,<2
+langgraph>=1.2,<2
+pydantic>=2.7
+fastapi
+uvicorn[standard]
+python-dotenv
+rich
+tzdata
+# The second queue backend (DUNNING_QUEUE=redis); compose runs the server.
+redis>=5
+pytest

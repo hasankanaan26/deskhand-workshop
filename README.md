@@ -24,8 +24,9 @@ This repo grows after each session, so it never shows you more than you need yet
 | Fri Oct 23 | Session 3 slides and handout, the two hooks from class, checkpoint 02-service |
 | Mon Oct 26 | Session 4 slides and handout, a code walkthrough of checkpoint 02's workflow with experiments (handouts/session-04-walkthrough.md) |
 | Wed Oct 28 | Session 5 slides, handout and the tool-calling pre-read |
+| Mon Nov 2 | Session 6 slides, handout and the workflows-and-agents pre-read, the dunning engine (dunning/), the capstone brief and design-doc template (capstone/), the optional build guide, checkpoint 03-rag, the Session 7 RAG pre-read |
 
-Next update: Fri Oct 30, after class.
+Next update: Wed Nov 4, after class.
 
 ## Repo map
 
@@ -46,6 +47,8 @@ deskhand-workshop/
   handouts/                  One page per session: "try this tonight", the lab steps to run at home,
                              plus build-your-own.md, an optional self-checked capstone build
   lab/                       A browser harness that runs each checkpoint and explains what it did
+  dunning/                   Session 6: a collections engine for Nimbus's unpaid invoices. The cadence
+                             is data, a worker wakes due cases, customers write back; its own console
 ```
 
 ## Setup
@@ -139,6 +142,7 @@ changed vs the previous checkpoint, how to run it, and a few "try this" exercise
 | [02-service](checkpoints/02-service/) | 4–6 | FastAPI service: `TicketResolutionState` node runner, SQLite persistence, SSE streaming, human approval gate. The provider boundary moves onto LangChain chat models, and the order-lookup and idempotent refund calls become LangChain tools. Two runtimes for the same nodes: the hand-written `graph.py` (Session 4) and LangGraph's `graph_lg.py` (Session 5 lab). `agent_demo.py` hands the same tools to LangChain's prebuilt agent, to show why Deskhand isn't one; `agent_bounded.py` puts the budget, the gate and the derived key back around that loop. |
 | [03-rag](checkpoints/03-rag/) | 7–9 | LangGraph is the only runtime. Policy ingestion with LangChain's `##` splitter into a local Qdrant store, retrieval node, plans must cite policy, the planted contradiction (and the measurement that a prompt is not a guard), 20-ticket golden set with `reference_contexts`, RAGAS retrieval metrics. |
 | [04-production](checkpoints/04-production/) | 10–12 | The golden set as a DeepEval test file and a rate-based release gate, three strict `GEval` judge metrics, LangSmith tracing by `request_id`, injection guardrails, budget caps + model routing, cost/latency dashboard, chaos lab guide. |
+| [dunning](dunning/) | 6 | Not a Deskhand checkpoint: a second, smaller system built the production way. A collections engine whose reminder cadence is a versioned policy record per tenant, one LangGraph pass with a single entry point, a case that rests in SQLite between steps, a worker that wakes due cases (or a Redis sorted set), an inbound path where the model classifies customer replies, and an audit log with the policy version on every line. |
 
 ## Shared data notes
 

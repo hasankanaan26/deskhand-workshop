@@ -1,0 +1,66 @@
+# The dunning engine in one command, from this folder:
+#
+#   docker compose up --build        seed (first run only), API, worker, Redis
+#   http://localhost:8006/console/
+#
+# In class the worker waits for slide 16 (a running worker takes the D-2 pass
+# that slide 11 does by hand), so start without it and add it then:
+#   docker compose up --build -d api                 seed, API, Redis
+#   docker compose up -d worker                      slide 16
+#
+#   docker compose stop worker       slide 18: kill the worker; start it again with
+#   docker compose start worker      "docker compose start worker"
+#   docker compose logs -f worker    what the worker catches up
+#   docker compose exec api python cli.py --timeline C-1002
+#   docker compose down -v           start over (drops the database volume)
+#
+# The source folder is mounted into every container, so an edit to policies.json
+# is live (slide 12) and logs/runs.jsonl lands on the host. The database sits on
+# a named volume, where SQLite's locking works across the API and the worker.
+#
+# Redis always runs; the queue is SQLite unless you ask:
+#   $env:DUNNING_QUEUE="redis"; docker compose up -d     (and back with "sqlite")
+
+x-dunning: &dunning
+  build: .
+  image: dunning-engine
+  init: true
+  env_file: ../.env
+  environment:
+    DUNNING_DB: /data/dunning.db
+    DUNNING_QUEUE: ${DUNNING_QUEUE:-sqlite}
+    DUNNING_REDIS_URL: redis://redis:6379/0
+  volumes:
+    - .:/app
+    - dunning-data:/data
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  # Seeds the four cases once; a database that already exists is left alone.
+  seed:
+    <<: *dunning
+    command: ["sh", "-c", "test -s /data/dunning.db && echo 'database exists, not reseeding' || python seed.py"]
+    depends_on:
+      - redis
+
+  api:
+    <<: *dunning
+    ports:
+      - "8006:8006"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *dunning
+    command: ["python", "worker.py"]
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+volumes:
+  dunning-data:

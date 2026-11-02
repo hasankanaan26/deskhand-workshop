@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dunning engine</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="console.css">
+</head>
+<body class="simple">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">D</span>
+    <span class="brand-text">
+      <span class="brand-name">Dunning engine</span>
+      <span class="brand-sub">chases unpaid invoices</span>
+    </span>
+    <span class="chip chip-accent">Session 6</span>
+  </div>
+  <nav class="tabs" aria-label="Views">
+    <a class="tab" href="#board" data-tab="board">Board</a>
+    <a class="tab" href="#case" data-tab="case" id="tab-case">Case</a>
+    <a class="tab" href="#tour" data-tab="tour">Tour</a>
+    <a class="tab" href="#policies" data-tab="policies">Policies</a>
+    <a class="tab" href="#triage" data-tab="triage">Triage</a>
+    <a class="tab" href="playground.html" title="Both workflows, simulated in the browser: nothing real runs">Playground</a>
+    <a class="tab" href="cadence-as-steps.html" title="A reference drawing: the same schedules as one big workflow, every rule copied into every stage">As steps</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="queue" class="chip detail" title="Where the wake-ups live: the case table (sqlite) or a Redis sorted set"></span>
+    <span id="worker" class="conn conn-idle" title="The worker writes a heartbeat on every tick"><span class="dot"></span><span id="worker-text">Worker: unknown</span></span>
+    <div class="seg" role="group" aria-label="View options">
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-mode" aria-pressed="false" title="Show everything: event names, actors, policy versions, every rule">Detailed</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-notes" aria-pressed="false" title="Teaching notes: why each panel exists, and where the code is">Notes</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-theme" aria-pressed="false" title="Light theme for bright projectors; off is dark">Light</button>
+    </div>
+    <span class="topbar-sep" aria-hidden="true"></span>
+    <div class="menu">
+      <button class="btn btn-ghost btn-sm" type="button" id="btn-startover" aria-expanded="false" aria-controls="startover-menu">Start over</button>
+      <div class="menu-pop" id="startover-menu" hidden>
+        <p class="small muted">Back to D-2, 09:00 UTC. Every case, event and message is wiped (<code>seed.py --reset</code>).</p>
+        <button class="btn menu-item" type="button" data-reset="class"><b>Four cases</b><span class="small muted">Acme, Globex, Initech, Umbrella</span></button>
+        <button class="btn menu-item" type="button" data-reset="practice"><b>Practice book</b><span class="small muted">thirteen cases, one per rule; the tour uses it</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <aside class="sidebar" aria-label="Clock and cases">
+    <section class="clock" aria-labelledby="clock-h">
+      <div class="clock-head">
+        <h2 id="clock-h" class="eyebrow">Simulated clock</h2>
+        <span class="small muted" id="clock-mode"></span>
+      </div>
+      <div class="clock-read">
+        <div class="clock-day" id="clock-day">&mdash;</div>
+        <div class="clock-time" id="clock-time">&mdash;</div>
+      </div>
+      <p class="small muted clock-lede">D is the day the invoice is due. Nothing happens until time moves.</p>
+      <div class="clock-rows">
+        <span class="clock-label" id="jump-l">Jump</span>
+        <div class="clock-actions" role="group" aria-labelledby="jump-l">
+          <button class="btn btn-sm detail" type="button" data-advance='{"hours":3}'>+3 h</button>
+          <button class="btn btn-sm" type="button" data-advance='{"hours":7}'>+7 h</button>
+          <button class="btn btn-sm" type="button" data-advance='{"days":1}'>+1 d</button>
+          <button class="btn btn-sm" type="button" data-advance='{"days":2}'>+2 d</button>
+          <button class="btn btn-sm" type="button" data-advance='{"days":4}'>+4 d</button>
+          <button class="btn btn-sm" type="button" data-advance='{"days":5}'>+5 d</button>
+          <button class="btn btn-sm" type="button" data-advance='{"days":11}'>+11 d</button>
+        </div>
+        <span class="clock-label" id="play-l">Play</span>
+        <div class="clock-actions" role="group" aria-labelledby="play-l">
+          <button class="btn btn-sm" type="button" data-play="1">1 day</button>
+          <button class="btn btn-sm" type="button" data-play="3">3 days</button>
+          <button class="btn btn-sm" type="button" data-play="7">1 week</button>
+          <button class="btn btn-sm btn-bad" type="button" id="btn-stop" hidden>Stop</button>
+        </div>
+        <span class="clock-label" id="wake-l">Wake</span>
+        <div class="clock-actions" role="group" aria-labelledby="wake-l">
+          <button class="btn btn-sm" type="button" id="btn-tick" title="One scheduler pass inside the API: what one worker tick does">Tick once</button>
+          <span class="small muted">whatever is due now</span>
+        </div>
+      </div>
+      <p id="clock-note" class="small muted clock-note" aria-live="polite"><b>Jump</b> moves time; the worker wakes what is due. <b>Play</b> moves it 3 hours at a time and wakes cases as it goes.</p>
+      <p class="why">A <b>jump</b> moves the clock; the worker (if it runs) wakes whatever is due on its next tick, once. <b>Play</b> moves it three hours at a time and ticks after each step, like a worker that never stopped. The clock lives in the database (<code>clock.py</code>), so the API and the worker agree on what time it is.</p>
+    </section>
+
+    <!-- The Board already lists every case, so the sidebar list shows on the other views only. -->
+    <section class="cases-section" aria-label="Cases">
+      <div class="sidebar-head">
+        <h2 class="eyebrow">Cases</h2>
+        <span id="case-count" class="small muted"></span>
+      </div>
+      <div class="filters" role="group" aria-label="Filter cases">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
+        <button class="filter" type="button" data-filter="open" aria-pressed="false">Open</button>
+        <button class="filter" type="button" data-filter="person" aria-pressed="false">Needs a person</button>
+        <button class="filter" type="button" data-filter="closed" aria-pressed="false">Closed</button>
+      </div>
+      <div id="case-list" class="case-list"><p class="muted small pad">Loading&hellip;</p></div>
+    </section>
+  </aside>
+
+  <section class="main">
+
+    <!-- ── Board ─────────────────────────────────────────── -->
+    <div id="view-board" class="view" hidden>
+      <div class="view-head">
+        <div>
+          <h1>Every unpaid invoice, and where it stands</h1>
+          <p class="muted">The engine sends each customer a reminder on schedule, holds it back while they sleep, and hands the hard cases to a person. Click a card to see what happens next, and why.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" id="toggle-flow" aria-expanded="true" aria-controls="flow">Hide how it works</button>
+      </div>
+      <ol class="flow" id="flow" aria-label="How it works">
+        <li><b>Time moves</b><span>You jump or play the clock on the left.</span></li>
+        <li><b>Due cases wake up</b><span>The worker finds every case whose wake-up time has passed.</span></li>
+        <li><b>The rules decide</b><span>Send the next reminder, wait (night, weekend, weekly cap), or ask a person.</span></li>
+        <li><b>Every step is logged</b><span>In <i>What just happened</i>, below, with its policy version.</span></li>
+      </ol>
+      <div class="kpis" id="kpis"></div>
+      <div class="board" id="board"></div>
+      <section class="panel">
+        <div class="panel-head">
+          <h3>What just happened</h3>
+          <span class="small muted">newest first</span>
+        </div>
+        <div id="feed" class="feed"><p class="muted small">Nothing yet. Press <b>Tick once</b> on the left, or start the worker.</p></div>
+        <p class="why">Every line here is a row in the <code>events</code> table, written by <code>engine.record</code>, so every line carries the policy version that was in force. The same lines are mirrored to <code>logs/runs.jsonl</code>.</p>
+      </section>
+    </div>
+
+    <!-- ── One case ──────────────────────────────────────── -->
+    <div id="view-case" class="view" hidden>
+      <div id="case-empty" class="empty">
+        <h1>Pick a case</h1>
+        <p class="muted">Choose one on the left to see what happens next, and why.</p>
+      </div>
+
+      <div id="case" hidden>
+        <div class="case-head">
+          <div class="case-title">
+            <div class="case-title-top">
+              <code id="case-id">&mdash;</code>
+              <span id="case-tenant" class="chip detail"></span>
+              <span id="status-pill" class="pill">active</span>
+            </div>
+            <h1 id="case-name"></h1>
+            <div id="case-meta" class="small muted"></div>
+          </div>
+          <div class="case-stats">
+            <div class="stat">
+              <span class="stat-label">Balance</span>
+              <b id="stat-balance" class="stat-value">$0.00</b>
+              <div class="meter" aria-hidden="true"><span id="paid-bar"></span></div>
+              <span id="stat-paid" class="small muted"></span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Their local time</span>
+              <b id="stat-local" class="stat-value"></b>
+              <span id="stat-quiet" class="small"></span>
+            </div>
+            <div class="stat detail">
+              <span class="stat-label">Next wake-up</span>
+              <b id="stat-next" class="stat-value">&mdash;</b>
+              <span id="stat-next-local" class="small muted"></span>
+            </div>
+            <div class="stat detail">
+              <span class="stat-label">Policy</span>
+              <b id="stat-policy" class="stat-value">&mdash;</b>
+              <span id="stat-policy-note" class="small"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="story" class="story" hidden>
+          <span class="story-label">Why this case is here</span>
+          <b id="story-title"></b>
+          <span id="story-lesson"></span>
+        </div>
+
+        <section id="approval" class="panel panel-warn" hidden>
+          <div class="panel-head"><h3>A person must approve this notice</h3><span id="approval-stage" class="small muted"></span></div>
+          <div class="draft"><b id="approval-subject"></b><p id="approval-body"></p></div>
+          <div class="actions">
+            <button id="btn-approve" class="btn btn-good" type="button">Approve and send</button>
+            <button id="btn-reject" class="btn btn-bad" type="button">Reject (escalate)</button>
+            <span id="approval-result" class="small muted" aria-live="polite"></span>
+          </div>
+          <p class="why">The policy marks this stage <code>requires_human</code>. Rule 7 parks the case <em>before</em> the compliance rules, so a person sees the draft even at 2 a.m.; once approved, quiet hours still decide when it goes out. Approving consumes the yes: <code>approved_stage</code> is cleared on send.</p>
+        </section>
+
+        <section id="dispute" class="panel panel-warn" hidden>
+          <div class="panel-head"><h3>Disputed: a person owns this case</h3><span class="small muted">no timer runs</span></div>
+          <div class="actions">
+            <label class="small muted" for="credit">credit $</label>
+            <input id="credit" type="number" min="0" step="0.01" value="60">
+            <input id="credit-note" type="text" placeholder="note, e.g. item 3 credited" value="item 3 credited">
+            <button id="btn-resolve" class="btn btn-good" type="button">Resolve and resume</button>
+            <span id="dispute-result" class="small muted" aria-live="polite"></span>
+          </div>
+          <p class="why">The model only <em>classified</em> the reply as a dispute. A person decides the credit; <code>engine.resolve_dispute</code> applies it and calls <code>evaluate</code>, the one entry point.</p>
+        </section>
+
+        <section id="resume" class="panel" hidden>
+          <div class="panel-head"><h3>A person has this case</h3><span id="resume-why" class="small muted"></span></div>
+          <div class="actions">
+            <button id="btn-resume" class="btn" type="button">Resume the schedule</button>
+            <span id="resume-result" class="small muted" aria-live="polite"></span>
+          </div>
+        </section>
+
+        <section class="panel panel-why">
+          <div class="panel-head">
+            <h3>What happens next</h3>
+            <span id="why-rule" class="why-rule"></span>
+          </div>
+          <p id="why-sentence" class="why-sentence"></p>
+          <div class="actions">
+            <button id="btn-evaluate" class="btn btn-sm" type="button" title="engine.evaluate(case_id, 'manual'): one pass now, without moving the clock">Evaluate now</button>
+            <span id="evaluate-result" class="small muted" aria-live="polite">runs one pass on this case, without moving the clock</span>
+          </div>
+          <details id="ladder-wrap" class="ladder-wrap">
+            <summary>See the nine rules, in the order the engine checks them</summary>
+            <ol id="ladder" class="ladder"></ol>
+          </details>
+          <p class="why">This is <code>rules.choose_next_action</code>, the engine's one decision point, called read-only by <code>explain.py</code>: no event is written and no wake-up moves. The first rule that applies, top to bottom, decides. All the compliance rules live in this one function, so they apply to every stage the same way.</p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>The cadence</h3>
+            <span id="track-policy" class="small muted"></span>
+          </div>
+          <div id="track" class="track"></div>
+          <p class="why">The stages are rows in <code>policies.json</code>, not boxes in the code. "Move to the next reminder" is a lookup into the policy, so a new stage is a new row and a version bump. A stage counts from the invoice due date (D) and becomes eligible at 00:00 UTC that day; when it goes out is the compliance rules' business.</p>
+        </section>
+
+        <div class="columns">
+          <div class="col">
+            <section class="panel">
+              <div class="panel-head"><h3>Play the customer</h3><span class="small muted">the rules decide what follows</span></div>
+              <div class="door">
+                <div class="field-label">They pay <span class="muted">(the ledger tells us; no model involved)</span></div>
+                <div class="actions">
+                  <label class="small muted" for="payment">amount $</label>
+                  <input id="payment" type="number" min="0.01" step="0.01" value="100">
+                  <button id="btn-pay" class="btn" type="button">Record payment</button>
+                  <button id="btn-pay-full" class="btn btn-ghost btn-sm" type="button">Pay in full</button>
+                </div>
+              </div>
+              <div class="door">
+                <div class="field-label">They reply <span class="muted">(the model reads it; code decides)</span></div>
+                <div id="presets" class="presets" role="group" aria-label="Sample replies"></div>
+                <textarea id="inbound-text" rows="3" aria-label="The customer's reply" placeholder="Type a reply from the customer, or pick a sample above."></textarea>
+                <p id="preset-hint" class="small muted preset-hint"></p>
+                <div class="actions">
+                  <button id="btn-inbound" class="btn btn-primary" type="button">Send as the customer's reply</button>
+                </div>
+              </div>
+              <p class="why">Four doors (a timer, a payment, a reply, a person's decision) and one entry point: <code>engine.evaluate</code>. It always starts by re-reading the case, so a reminder is never sent for a balance that was paid in the meantime. The model never touches the balance: a reply can pause, flag or escalate a case, never pay it.</p>
+            </section>
+
+            <section class="panel" id="lastpass" hidden>
+              <div class="panel-head"><h3>The last pass</h3><span id="lastpass-trigger" class="small muted"></span></div>
+              <div id="lastpass-intent" class="intent" hidden></div>
+              <div id="lastpass-decision" class="lastpass-decision"></div>
+              <ol id="lastpass-log" class="lastpass-log detail"></ol>
+              <p class="why">What <code>engine.evaluate</code> returned: the trigger, the decision and the log lines from each node of the graph (<code>evaluate → choose → carry_out / park / wait / settle / escalate</code>).</p>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><h3>Messages sent</h3><span class="small muted">a pretend outbox: nothing really leaves</span></div>
+              <div id="messages" class="messages"><p class="muted small">none yet</p></div>
+              <p class="why">Each message has a key, <code>case:stage:policy version</code>, unique in the <code>messages</code> table. A second worker, or a restart, can try to send it again and the insert simply fails: sent once.</p>
+            </section>
+          </div>
+          <div class="col">
+            <section class="panel panel-tall">
+              <div class="panel-head">
+                <h3>Timeline</h3>
+                <label class="small muted check detail"><input type="checkbox" id="show-quiet"> show draft checks</label>
+              </div>
+              <div id="timeline" class="timeline"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tour ──────────────────────────────────────────── -->
+    <div id="view-tour" class="view" hidden>
+      <div class="view-head">
+        <div>
+          <h1>The tour: three weeks in twenty minutes</h1>
+          <p class="muted">Ten short stops. At each one: guess first, press the button, then reveal what happened.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" id="tour-reset-progress">Clear ticks</button>
+      </div>
+      <div id="tour-banner" class="panel panel-warn" hidden>
+        <div class="panel-head"><h3>The tour runs on the practice book</h3></div>
+        <p class="small">It expects all thirteen cases with the clock at D-2. Start over with the practice book; the class set is one click away afterwards.</p>
+        <div class="actions"><button class="btn btn-primary" type="button" data-reset="practice">Start over with the practice book</button></div>
+      </div>
+      <ol id="tour" class="tour"></ol>
+    </div>
+
+    <!-- ── Triage ────────────────────────────────────────── -->
+    <div id="view-triage" class="view" hidden>
+      <div class="view-head">
+        <div>
+          <h1>Triage: one reply, five steps</h1>
+          <p class="muted">A customer writes back. The model reads it and proposes one action; code matches the invoices, checks the proposal against the policy, and decides what runs now and what waits for a person. Pick a reply, then run it.</p>
+        </div>
+      </div>
+      <div class="tri-layout">
+        <section class="panel tri-pick" aria-labelledby="tri-pick-h">
+          <div class="panel-head"><h3 id="tri-pick-h">Thirty labelled replies</h3>
+            <label class="small muted">intent <select id="tri-filter" aria-label="Show replies with this labelled intent"><option value="">all</option></select></label>
+          </div>
+          <div id="tri-list" class="tri-list"><p class="muted small">Loading&hellip;</p></div>
+          <div class="tri-own">
+            <h3>Or write your own</h3>
+            <label class="small muted">to <select id="tri-account" aria-label="The account the reply comes from"></select></label>
+            <textarea id="tri-text" rows="4" aria-label="Your reply" placeholder="Type a customer's reply. It has no labels, so only the model can run it."></textarea>
+            <div class="actions"><button class="btn" type="button" id="tri-run-own">Run with the model</button><span class="small muted">two model calls</span></div>
+          </div>
+          <p class="why">The labels are what a careful person would read and propose. Running "with the labels" plays them through the real match, check and gate: it tests the harness with no model. Running "with the model" replaces the person, so you can compare (<code>triage/try_reply.py</code>).</p>
+        </section>
+
+        <div class="tri-main">
+          <section class="panel" id="tri-reply-panel" hidden>
+            <div class="panel-head"><h3 id="tri-reply-h">The reply</h3><span id="tri-hard" class="small muted"></span></div>
+            <div class="draft"><b id="tri-subject"></b><p id="tri-from" class="small muted"></p><p id="tri-body"></p></div>
+            <div id="tri-account-facts" class="small tri-facts"></div>
+            <div class="actions">
+              <button class="btn btn-primary" type="button" id="tri-run-labels">Run with the labels</button>
+              <span class="small muted">no model, free</span>
+              <button class="btn" type="button" id="tri-run-model">Run with the model</button>
+              <span class="small muted">two calls, costs a little</span>
+            </div>
+            <details class="tri-whatif" id="tri-whatif">
+              <summary>What if the model had said something else?</summary>
+              <p class="small muted">Change the labels, then run them through the same code. Which check catches it?</p>
+              <div class="tri-grid">
+                <label class="small">intent <select id="wi-intent"></select></label>
+                <label class="small">confidence <input id="wi-confidence" type="number" min="0" max="1" step="0.05"></label>
+                <label class="small">action <select id="wi-action"></select></label>
+                <label class="small">pause until <input id="wi-pause" type="text" placeholder="YYYY-MM-DD"></label>
+                <label class="small">new contact <input id="wi-contact" type="text" placeholder="name@example.com"></label>
+              </div>
+              <label class="small">draft reply <textarea id="wi-draft" rows="3"></textarea></label>
+              <div class="actions"><button class="btn" type="button" id="tri-run-whatif">Run the what-if</button><button class="btn btn-ghost btn-sm" type="button" id="tri-whatif-reset">Back to the labels</button></div>
+            </details>
+            <p id="tri-status" class="small muted" aria-live="polite"></p>
+          </section>
+          <div id="tri-empty" class="empty"><h1>Pick a reply</h1><p class="muted">Start with R-05 (clean), then R-10, R-13, R-21 or R-30.</p></div>
+          <div id="tri-result" hidden>
+            <div id="tri-verdict" class="tri-verdict"></div>
+            <ol id="tri-steps" class="tri-steps" aria-label="The five steps"></ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Policies ──────────────────────────────────────── -->
+    <div id="view-policies" class="view" hidden>
+      <div class="view-head">
+        <div>
+          <h1>The policies: cadence as data</h1>
+          <p class="muted">The reminder schedule is data in <code>policies.json</code>, not code. Change a row, bump the version, save: the next pass uses it. <a href="cadence-as-steps.html">The same schedules as steps</a>, for comparison.</p>
+        </div>
+      </div>
+      <div id="policies" class="policies"></div>
+      <section class="panel">
+        <div class="panel-head"><h3>Versions applied</h3><span class="small muted">the audit copy (<code>policy_versions</code>)</span></div>
+        <div id="versions" class="versions"></div>
+        <p class="why">"Which rules were in force on the night of the 2 a.m. reminder?" The version on the event row, plus this table, answers it. The engine records each version the first time it applies one.</p>
+      </section>
+    </div>
+
+  </section>
+</main>
+
+<script src="tour.js"></script>
+<script src="triage.js"></script>
+<script src="console.js"></script>
+</body>
+</html>

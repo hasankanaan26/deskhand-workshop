@@ -1,0 +1,20 @@
+{
+  "note": "Every number here is this course's choice for the exercise, not an industry standard. Change them and the tests tell you what moved.",
+  "confidence_floor": 0.6,
+  "max_promise_days": 30,
+  "max_snooze_days": 21,
+  "max_instalments": 3,
+  "max_plan_days": 60,
+  "allowed_actions": {
+    "already_paid": ["record_payment_claim", "escalate"],
+    "promise_to_pay": ["pause_for_promise", "escalate"],
+    "partial_payment_request": ["offer_payment_plan", "escalate"],
+    "dispute": ["open_dispute", "escalate"],
+    "out_of_office": ["snooze_until_return", "no_action"],
+    "wrong_contact": ["update_contact", "escalate"],
+    "stop_contact": ["stop_contact", "escalate"],
+    "question": ["reply_only", "escalate"],
+    "other": ["escalate", "no_action"]
+  },
+  "needs_person": ["offer_payment_plan", "update_contact"]
+}

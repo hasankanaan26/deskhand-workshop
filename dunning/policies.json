@@ -1,0 +1,116 @@
+{
+  "nimbus-retail": {
+    "tenant": "nimbus-retail",
+    "name": "Nimbus Electronics, retail invoices",
+    "version": 4,
+    "stages": [
+      {
+        "name": "soft_reminder",
+        "day": -2,
+        "channel": "email",
+        "tone": "friendly"
+      },
+      {
+        "name": "first_notice",
+        "day": 3,
+        "channel": "email",
+        "tone": "formal"
+      },
+      {
+        "name": "second_notice",
+        "day": 10,
+        "channel": "sms+email",
+        "tone": "firm"
+      },
+      {
+        "name": "final_notice",
+        "day": 21,
+        "channel": "email",
+        "tone": "final",
+        "requires_human": true
+      }
+    ],
+    "quiet_hours": {
+      "start": "21:00",
+      "end": "08:00"
+    },
+    "max_contacts_per_week": 3,
+    "weekend_pause": true
+  },
+  "nimbus-business": {
+    "tenant": "nimbus-business",
+    "name": "Nimbus Electronics, business accounts (net 30)",
+    "version": 2,
+    "stages": [
+      {
+        "name": "first_notice",
+        "day": 5,
+        "channel": "email",
+        "tone": "formal"
+      },
+      {
+        "name": "second_notice",
+        "day": 14,
+        "channel": "email",
+        "tone": "firm"
+      },
+      {
+        "name": "final_notice",
+        "day": 30,
+        "channel": "email",
+        "tone": "final",
+        "requires_human": true
+      }
+    ],
+    "quiet_hours": {
+      "start": "20:00",
+      "end": "09:00"
+    },
+    "max_contacts_per_week": 1,
+    "weekend_pause": true
+  },
+  "nimbus-subscriptions": {
+    "tenant": "nimbus-subscriptions",
+    "name": "Nimbus Care+ subscriptions (a failed card payment)",
+    "version": 1,
+    "stages": [
+      {
+        "name": "payment_failed",
+        "day": 0,
+        "channel": "email",
+        "tone": "friendly"
+      },
+      {
+        "name": "retry_notice",
+        "day": 2,
+        "channel": "sms",
+        "tone": "formal"
+      },
+      {
+        "name": "second_retry",
+        "day": 4,
+        "channel": "sms",
+        "tone": "firm"
+      },
+      {
+        "name": "last_call",
+        "day": 6,
+        "channel": "email",
+        "tone": "firm"
+      },
+      {
+        "name": "suspension_notice",
+        "day": 9,
+        "channel": "email",
+        "tone": "final",
+        "requires_human": true
+      }
+    ],
+    "quiet_hours": {
+      "start": "22:00",
+      "end": "07:00"
+    },
+    "max_contacts_per_week": 2,
+    "weekend_pause": false
+  }
+}

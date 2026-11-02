@@ -33,11 +33,25 @@ deepeval>=4.2.8,<5
 # install declares no LangChain pins, so it sits beside the 1.x line above.
 nemoguardrails>=0.24.1,<0.25
 tiktoken
+# The IANA timezone database. Windows ships none, and dunning/rules.py judges
+# quiet hours in the customer's local time with zoneinfo.
+tzdata
+# Optional, the dunning engine's second queue backend (DUNNING_QUEUE=redis,
+# dunning/queues.py): pip install redis, only for the Session 6 stretch.
+# redis>=5
 pydantic>=2.7
 fastapi
 uvicorn[standard]
 httpx
-qdrant-client
+# 1.10+ for the Query API: checkpoint 03's kb_search.py fuses dense and BM25
+# prefetches with RRF, and Qdrant supplies the BM25 IDF (Modifier.IDF).
+qdrant-client>=1.10
+# The MCP server in checkpoint 03 (mcp_server.py, Session 7's opener). 2.x
+# renamed FastMCP to MCPServer; v1 examples on the web do not run on it.
+mcp>=2.3,<3
+# Optional, a local cross-encoder for kb_search.py --rerank. Without it (or
+# when its model cannot download) the chat model reranks; the trace says which.
+# fastembed>=0.9,<0.10
 pytest
 python-dotenv
 rich

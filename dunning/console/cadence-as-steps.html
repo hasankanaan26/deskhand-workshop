@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence as steps</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="cadence-as-steps.css">
+</head>
+<body>
+
+<!-- A reference picture, not a program: Nimbus's three reminder schedules drawn the way a
+     workflow tool would hold them, one box per step, with every rule copied into every stage.
+     Nothing here runs. The runnable four-box version is steps.py; the engine that reads the
+     same schedules from policies.json is engine.py + rules.py. -->
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">D</span>
+    <span class="brand-text">
+      <span class="brand-name">Cadence as steps</span>
+      <span class="brand-sub">a reference: the schedule drawn as one workflow</span>
+    </span>
+    <span class="chip chip-accent">Session 6</span>
+  </div>
+  <div class="topbar-right">
+    <span class="chip" title="Nothing on this page runs: it is a drawing">A drawing: nothing runs</span>
+    <div class="seg" role="group" aria-label="View options">
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-notes" aria-pressed="false" title="Teaching notes: where the real code is">Notes</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-theme" aria-pressed="false" title="Light theme for bright projectors; off is dark">Light</button>
+    </div>
+    <span class="topbar-sep" aria-hidden="true"></span>
+    <a class="btn btn-ghost btn-sm" href="playground.html">Playground</a>
+    <a class="btn btn-ghost btn-sm" href="index.html#policies">Console</a>
+  </div>
+</header>
+
+<main class="cw-main">
+
+  <div class="view-head">
+    <div>
+      <h1>The same three schedules, as one workflow</h1>
+      <p class="muted">Nimbus has three reminder schedules: retail, business and subscriptions. Here each one is drawn the way a workflow tool holds it: a box per step, and every rule (quiet hours, the weekend, the weekly cap, payments, replies) copied into every stage. On the happy path it works. Count the boxes, then find the copies that drifted apart.</p>
+    </div>
+  </div>
+
+  <div class="cw-stats" id="cw-stats" aria-label="What the drawing holds"></div>
+
+  <section class="panel cw-canvas-panel" aria-labelledby="cw-canvas-h">
+    <div class="panel-head cw-canvas-head">
+      <h3 id="cw-canvas-h">The workflow</h3>
+      <div class="cw-legend" id="cw-legend" aria-label="Kinds of box"></div>
+      <div class="actions cw-canvas-actions">
+        <button class="btn btn-sm" type="button" id="cw-zoom" aria-pressed="false" title="Every box as a bar, so the whole workflow fits on one screen">Zoom out</button>
+        <button class="btn btn-sm" type="button" id="cw-v5" aria-pressed="false" title="Retail v5 adds an SMS heads-up the day before D">Add the v5 stage</button>
+      </div>
+    </div>
+    <p id="cw-v5-note" class="cw-v5-note small" aria-live="polite" hidden></p>
+    <div class="cw-canvas" id="cw-canvas">
+      <div class="cw-trigger"><span class="cw-badge cw-t-start">Start</span> An invoice opens a case <span class="cw-arrow" aria-hidden="true">&rarr;</span> <span class="cw-badge cw-t-switch">Switch</span> Which schedule?</div>
+      <div class="cw-lanes" id="cw-lanes"></div>
+    </div>
+    <p class="why">Drawn from a list in <code>cadence-as-steps.js</code>; nothing here calls the engine or a model. The four-box version that really runs is <code>steps.py</code> (<code>py steps.py</code>). The engine keeps one copy of every rule: <code>rules.choose_next_action</code> reads the schedule from <code>policies.json</code> on every wake-up.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="cw-drift-h">
+    <div class="panel-head"><h3 id="cw-drift-h">Six places the copies drifted</h3><span class="small muted">click one to find it on the canvas</span></div>
+    <ol class="cw-drifts" id="cw-drifts"></ol>
+    <p class="why">None of these is a typo you would catch in review: each box is right on its own. The engine cannot drift this way because there is one quiet-hours check (<code>rules.in_quiet_hours</code>), one weekly cap and one weekend pause, and each reads its numbers from the policy record.</p>
+  </section>
+
+  <div class="cw-two">
+    <section class="panel" aria-labelledby="cw-data-h">
+      <div class="panel-head"><h3 id="cw-data-h">The same retail schedule, as data</h3><span class="small muted"><code>policies.json</code></span></div>
+      <pre class="cw-code" id="cw-policy"></pre>
+      <p class="small muted">One record per schedule, and one engine that reads it. The rules the workflow copies into every stage live once, in <code>rules.py</code>.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="cw-cost-h">
+      <div class="panel-head"><h3 id="cw-cost-h">What a change costs</h3></div>
+      <table class="cw-table">
+        <thead><tr><th scope="col">The change</th><th scope="col">As steps</th><th scope="col">As data</th></tr></thead>
+        <tbody id="cw-costs"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <section class="panel cw-fair" aria-labelledby="cw-fair-h">
+    <div class="panel-head"><h3 id="cw-fair-h">When steps are the right call</h3></div>
+    <p>One schedule, one time zone, nothing arriving half-way: then four boxes in a row are easier to read than an engine, and <code>steps.py</code> is all you need. A workflow tool also gives you durable timers for free. The canvas above is what the same idea costs at three schedules, nine rules and six kinds of reply. The engine keeps the durable wait (a wake-up time in the case row) and moves the schedule into data.</p>
+  </section>
+
+  <details class="panel cw-fold cw-file">
+    <summary><b>The workflow file</b><span class="small muted" id="cw-file-count"></span></summary>
+    <div class="cw-file-body">
+      <p class="small muted">What a workflow tool would save for the drawing above, in a generic YAML shape. Every box is a block; every copy of a rule is a copy of its block.</p>
+      <pre class="cw-code cw-file-pre" id="cw-file"></pre>
+    </div>
+  </details>
+
+</main>
+
+<script src="cadence-as-steps.js"></script>
+</body>
+</html>

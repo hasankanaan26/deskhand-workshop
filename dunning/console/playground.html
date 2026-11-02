@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dunning playground</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="playground.css">
+</head>
+<body>
+
+<!-- A teaching playground: both workflows simulated in the browser. Nothing here calls the
+     engine, the API or a model, so it also works opened straight from disk. The rules mirror
+     dunning/rules.py and dunning/triage/check.py, simplified; the real code is the reference.
+     Built for projecting: one headline, the path with arrows, everything else folded away. -->
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">D</span>
+    <span class="brand-text">
+      <span class="brand-name">Dunning playground</span>
+      <span class="brand-sub">both workflows, simulated</span>
+    </span>
+    <span class="chip chip-accent">Session 6</span>
+  </div>
+  <nav class="tabs" aria-label="Views">
+    <a class="tab" href="#inbound" data-tab="inbound">Inbound</a>
+    <a class="tab" href="#outbound" data-tab="outbound">Outbound</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="chip" title="Nothing on this page calls the engine, the API or a model">Simulation: nothing real runs</span>
+    <div class="seg" role="group" aria-label="View options">
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-notes" aria-pressed="false" title="Teaching notes: why each part exists">Notes</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="toggle-theme" aria-pressed="false" title="Light theme for bright projectors; off is dark">Light</button>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="cadence-as-steps.html" title="A reference drawing: the schedules as one big workflow">As steps</a>
+    <a class="btn btn-ghost btn-sm" href="index.html">Console</a>
+  </div>
+</header>
+
+<main class="pg-main">
+
+  <!-- ── Inbound ─────────────────────────────────────────── -->
+  <div id="view-inbound" class="view" hidden>
+    <div class="view-head">
+      <div>
+        <h1>Inbound: a customer writes back</h1>
+        <p class="muted">Pick a reply and press Run. Then change one thing and watch where it stops.</p>
+      </div>
+    </div>
+
+    <div class="pg-grid">
+      <div class="pg-controls">
+        <section class="panel">
+          <div class="panel-head"><h3>The reply</h3></div>
+          <div class="pg-presets" id="in-presets" role="group" aria-label="Sample replies"></div>
+          <p class="small muted pg-from" id="in-from"></p>
+          <textarea id="in-body" rows="4" aria-label="The reply's body (you can edit it)"></textarea>
+          <p class="small muted" id="in-account"></p>
+          <div class="actions">
+            <button class="btn btn-primary" type="button" id="in-run">Run</button>
+            <button class="btn" type="button" id="in-step">Step</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="in-reset">Reset</button>
+          </div>
+        </section>
+
+        <details class="panel pg-fold" id="in-model-fold">
+          <summary><b>What-if: the model said something else</b><span class="small muted" id="in-model-sum"></span></summary>
+          <div class="pg-form">
+            <label class="small">intent <select id="in-intent"></select></label>
+            <label class="small">confidence <span class="mono" id="in-conf-out"></span>
+              <input id="in-conf" type="range" min="0" max="1" step="0.05"></label>
+            <label class="small">evidence quote <input id="in-quote" type="text"></label>
+            <label class="small">invoice it named <select id="in-invoice"></select></label>
+            <label class="small">action <select id="in-action"></select></label>
+            <label class="small" data-for="pause_for_promise">pay by (days from today) <input id="in-days" type="number" min="-5" max="90"></label>
+            <label class="small" data-for="snooze_until_return">back in (days) <input id="in-snooze" type="number" min="1" max="60"></label>
+            <label class="small" data-for="offer_payment_plan">instalments <input id="in-inst" type="number" min="1" max="6"></label>
+            <label class="small" data-for="offer_payment_plan">each ($) <input id="in-each" type="number" min="0" step="10"></label>
+            <label class="small" data-for="update_contact">new contact <input id="in-contact" type="text"></label>
+          </div>
+          <label class="small pg-label" for="in-draft">draft reply (optional)</label>
+          <textarea id="in-draft" rows="2"></textarea>
+        </details>
+
+        <details class="panel pg-fold">
+          <summary><b>Production switches</b><span class="small muted" id="in-sw-sum"></span></summary>
+          <div class="pg-switches">
+            <label class="small"><input type="checkbox" id="sw-dup"> the mail system delivers it twice</label>
+            <label class="small"><input type="checkbox" id="sw-auto"> it's an auto-reply</label>
+            <label class="small"><input type="checkbox" id="sw-unknown"> the sender isn't a known customer</label>
+            <label class="small">the model API
+              <select id="sw-model">
+                <option value="ok">answers</option>
+                <option value="flaky">times out once</option>
+                <option value="down">is down</option>
+              </select></label>
+            <label class="small">rollout
+              <select id="sw-rollout">
+                <option value="automate">automate what can be undone</option>
+                <option value="assist">assist: a person clicks</option>
+                <option value="shadow">shadow: log only</option>
+              </select></label>
+          </div>
+        </details>
+      </div>
+
+      <div class="pg-stage">
+        <div id="in-verdict" class="pg-verdict pg-idle"></div>
+
+        <section class="panel">
+          <div class="panel-head"><h3>The path</h3>
+            <span class="pg-legend small"><span class="pg-key pg-code">code</span><span class="pg-key pg-model">the model</span><span class="pg-key pg-person">a person</span></span></div>
+          <div class="pg-flow" id="in-flow" role="list" aria-label="The inbound path"></div>
+          <p class="why">The plumbing never calls the model: accept fast, de-duplicate on the message id, route. Only a real reply from a known customer reaches triage, where the model has two boxes out of five and code calls each in turn.</p>
+        </section>
+
+        <details class="panel pg-fold" id="in-checks-fold">
+          <summary><b>Eleven checks</b><span class="small muted" id="in-checks-sum"></span></summary>
+          <ul class="pg-checks" id="in-checks"></ul>
+          <p class="why">Each check is code comparing the model's output with something the model can't change: the reply text, the ledger, the policy file. Any failure sends the reply to a person and nothing is sent.</p>
+        </details>
+
+        <details class="panel pg-fold">
+          <summary><b>The decision record</b><span class="small muted">one per reply, one trace id</span></summary>
+          <pre class="pg-record" id="in-record">Run a reply to fill it in.</pre>
+          <p class="why">This is what you'd query a month later: what came in, what the model read, what code decided, and under which prompt, model and policy versions.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Outbound ────────────────────────────────────────── -->
+  <div id="view-outbound" class="view" hidden>
+    <div class="view-head">
+      <div>
+        <h1>Outbound: one case, over five weeks</h1>
+        <p class="muted">Acme owes $240.00, due Fri 6 Nov (day D). Press Play. Then change what the customer does, and play it again.</p>
+      </div>
+    </div>
+
+    <div class="pg-grid">
+      <div class="pg-controls">
+        <section class="panel">
+          <div class="panel-head"><h3>The clock</h3></div>
+          <p class="pg-clock mono" id="out-clock"></p>
+          <input id="out-time" type="range" min="0" step="1" aria-label="Simulated time">
+          <div class="actions">
+            <button class="btn btn-primary btn-sm" type="button" id="out-play">Play</button>
+            <button class="btn btn-sm" type="button" data-step="24">+1 day</button>
+            <button class="btn btn-sm" type="button" data-step="168">+1 week</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="out-start">Back to the start</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>What the customer does</h3></div>
+          <div class="pg-form">
+            <label class="small">promises to pay on <select id="o-promise" data-days></select></label>
+            <label class="small">disputes on <select id="o-dispute" data-days></select></label>
+            <label class="small">says "stop emailing us" on <select id="o-stop" data-days></select></label>
+            <label class="small">pays in full on <select id="o-pay" data-days></select></label>
+          </div>
+        </section>
+
+        <details class="panel pg-fold">
+          <summary><b>The policy and the rules</b><span class="small muted" id="o-policy-sum"></span></summary>
+          <div class="pg-form">
+            <label class="small">their time zone <select id="o-tz">
+              <option value="1">Paris (UTC+1)</option>
+              <option value="0">London (UTC+0)</option>
+              <option value="-5">New York (UTC-5)</option>
+              <option value="-8">Los Angeles (UTC-8)</option>
+              <option value="2">Beirut (UTC+2)</option>
+            </select></label>
+            <label class="small">weekly cap <input id="o-cap" type="number" min="1" max="7"></label>
+            <label class="small">publish v5 (+ an SMS at D-1) on <select id="o-v5" data-days></select></label>
+            <label class="small">running cases <select id="o-pin">
+              <option value="move">move to v5 at their next look</option>
+              <option value="pin">keep their version</option>
+            </select></label>
+            <label class="small">a person approves the final notice <select id="o-approve">
+              <option value="0">the same day</option>
+              <option value="2">2 days later</option>
+              <option value="-1">never</option>
+            </select></label>
+          </div>
+          <div class="pg-switches">
+            <label class="small"><input type="checkbox" id="o-quiet"> quiet hours 21:00 to 08:00, their time</label>
+            <label class="small"><input type="checkbox" id="o-weekend"> no weekends</label>
+          </div>
+        </details>
+
+        <details class="panel pg-fold">
+          <summary><b>Break things</b><span class="small muted" id="o-break-sum"></span></summary>
+          <div class="pg-switches">
+            <label class="small"><input type="checkbox" id="o-threat"> the draft adds "legal action" to the first notice</label>
+            <label class="small"><input type="checkbox" id="o-wrong"> the draft states the wrong amount</label>
+            <label class="small"><input type="checkbox" id="o-crash"> the worker crashes after the first notice is in the outbox</label>
+            <label class="small"><input type="checkbox" id="o-nokey"> &hellip; and the outbox has no idempotency key</label>
+            <label class="small">a bank transfer is in flight on <select id="o-flight" data-days></select></label>
+          </div>
+        </details>
+      </div>
+
+      <div class="pg-stage">
+        <div id="out-verdict" class="pg-verdict pg-idle"></div>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Five weeks of one case</h3>
+            <span class="pg-legend small"><span class="pg-dot pg-sent"></span>sent <span class="pg-dot pg-held"></span>held back <span class="pg-dot pg-person-dot"></span>a person <span class="pg-dot pg-bad-dot"></span>went wrong <span class="pg-dot pg-plan"></span>planned</span></div>
+          <div class="pg-timeline" id="out-timeline" aria-hidden="true"></div>
+          <div class="pg-case" id="out-case"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>The loop <span class="small muted">· the last time the case woke up</span></h3>
+            <span class="pg-legend small"><span class="pg-key pg-code">code</span><span class="pg-key pg-model">the model</span></span></div>
+          <div class="pg-flow" id="out-flow" role="list" aria-label="The outbound loop"></div>
+          <p class="why">The scheduler only asks "which cases are due?". It never sends. Every way in (a timer, a reply, a payment, an approval) goes through the same door and re-reads the case. The outbox key <code>case:stage:version</code> is what makes a retry safe.</p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>What happened</h3><span class="small muted">newest first</span></div>
+          <ol class="pg-log" id="out-log"></ol>
+        </section>
+
+        <details class="panel pg-fold">
+          <summary><b>The nine rules, in order</b><span class="small muted" id="out-ladder-sum"></span></summary>
+          <ol class="pg-ladder" id="out-ladder"></ol>
+          <p class="why">One decision point (<code>rules.choose_next_action</code>), read top to bottom; the first rule that applies wins. A new stage inherits every rule because every send goes through this one function.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="playground.js"></script>
+</body>
+</html>

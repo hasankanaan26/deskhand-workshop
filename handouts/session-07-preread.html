@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Before Session 7: RAG basics, read in a real repo</title>
+<style>
+:root { --fg: #14272b; --muted: #5b6f6c; --line: #d6e0de; --green: #0b8f66; --teal: #11958a; --violet: #6d4fd1; --yellow: #a86f00; --coral: #c2413c; --blue: #2a6fd6; --code-bg: #0c1a1d; --code-fg: #eef6f3; }
+* { box-sizing: border-box; }
+html { background: #fff; }
+body { margin: 0 auto; max-width: 860px; padding: 32px 24px 64px; font: 17px/1.5 "Segoe UI", system-ui, sans-serif; color: var(--fg); }
+h1 { font-size: 2em; line-height: 1.15; margin: 0 0 0.2em; }
+h2 { font-size: 1.35em; margin: 1.6em 0 0.5em; border-top: 2px solid var(--line); padding-top: 0.6em; }
+h3 { font-size: 1.1em; margin: 1.2em 0 0.4em; }
+h4 { margin: 0 0 0.3em; font-size: 1.05em; }
+p.lede { color: var(--muted); font-size: 1.05em; margin: 0 0 1em; }
+.callout { border-left: 5px solid var(--teal); background: #f1f7f6; padding: 10px 16px; margin: 14px 0; border-radius: 0 8px 8px 0; }
+.callout::before { display: block; font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); margin-bottom: 2px; }
+.callout.plain::before { content: "In plain words"; }
+.callout.example::before { content: "Example"; }
+.callout.analogy { border-color: var(--violet); background: #f4f1fb; } .callout.analogy::before { content: "Think of it like"; color: var(--violet); }
+.callout.watch { border-color: var(--coral); background: #fbf1f0; } .callout.watch::before { content: "Watch out"; color: var(--coral); }
+.callout.info { border-color: var(--blue); background: #eff4fc; } .callout.info::before { content: "Good to know"; color: var(--blue); }
+.callout.simpler { border-color: var(--yellow); background: #fdf8ec; } .callout.simpler::before { content: "Simpler than production"; color: var(--yellow); }
+.callout.monday { border: 2px solid var(--teal); border-left-width: 6px; background: #f1f7f6; padding: 14px 18px; } .callout.monday::before { content: "What changes on Monday"; }
+.callout[data-label]::before { content: attr(data-label); }
+.callout p { margin: 0.2em 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 14px 0; }
+.card { border: 1px solid var(--line); border-top: 4px solid var(--teal); border-radius: 8px; padding: 10px 14px; }
+.card.good { border-top-color: var(--green); } .card.bad { border-top-color: var(--coral); }
+.card p, .card ul { margin: 0.3em 0; font-size: 0.95em; }
+.cp { border: 1px solid var(--line); border-left: 5px solid var(--teal); border-radius: 0 8px 8px 0; padding: 4px 16px 8px; margin: 14px 0; }
+.cp h3 { margin-top: 0.6em; }
+.cp dl { margin: 0.3em 0; display: grid; grid-template-columns: 7.2em 1fr; gap: 4px 12px; font-size: 0.95em; }
+.cp dt { font-weight: 700; color: var(--teal); }
+.cp dd { margin: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.95em; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: #f1f7f6; color: var(--teal); }
+td.num { text-align: right; white-space: nowrap; }
+pre { background: var(--code-bg); color: var(--code-fg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font: 13.5px/1.45 "Cascadia Code", Consolas, monospace; }
+code { font-family: "Cascadia Code", Consolas, monospace; font-size: 0.92em; }
+p code, li code, td code, dd code { background: #eef3f2; padding: 0 4px; border-radius: 4px; }
+pre .comment { color: #8fb3ad; }
+blockquote { margin: 12px 0; padding: 8px 16px; border-left: 4px solid var(--yellow); background: #fdf8ec; }
+.small { font-size: 0.95em; } .muted { color: var(--muted); }
+.figure { margin: 12px 0; } .figure svg { width: 100%; height: auto; }
+ol li, ul li { margin: 0.25em 0; }
+.good { color: var(--green); } .bad { color: var(--coral); }
+@media print { body { padding: 0; max-width: none; font-size: 12.5px; } h2, h3 { break-after: avoid; } table, pre, .callout, .cards, .figure, .cp { break-inside: avoid; } @page { margin: 16mm 14mm; } }
+</style>
+</head>
+<body>
+<h1>Before Session 7: RAG basics, read in a real repo</h1>
+<p class="lede">Deskhand workshop · read over the weekend of 31 October and 1 November · about three hours, reading only</p>
+<p>Next week is retrieval: Monday, Wednesday and Friday. The basics (why retrieval, what an embedding is, how "close" is measured, the retrieve-then-answer loop) move to this weekend, so the sessions can spend their time on what changes in production. This page does two jobs. Sections 1 to 4 are the basics, in Deskhand's terms. Section 5 is a reading guide to a small RAG app built in eight steps, Hasan's <code>rag-week-bootcamp</code> repo, so you see every piece in plain code before Monday. Reading is enough. Running it is optional and at the end.</p>
+
+<h2>The plan for the weekend</h2>
+<table>
+  <tr><th>Step</th><th>What to read</th><th class="num">Time</th></tr>
+  <tr><td>1</td><td>This page, sections 1 to 4: why RAG, embeddings, cosine similarity, how the search works and where it goes wrong</td><td class="num">35 min</td></tr>
+  <tr><td>2</td><td>The repo's <code>README.md</code> and <code>SESSIONS.md</code>: what it builds, the eight steps</td><td class="num">10 min</td></tr>
+  <tr><td>3</td><td><code>docs/architecture.md</code>: the three-step pattern and where each module sits</td><td class="num">10 min</td></tr>
+  <tr><td>4</td><td>Checkpoints 1 to 4 (section 5 below): each one's <code>docs/session-0N.md</code>, then the files listed</td><td class="num">45 min</td></tr>
+  <tr><td>5</td><td>Checkpoints 5 to 8, the same way</td><td class="num">45 min</td></tr>
+  <tr><td>6</td><td><code>docs/common-mistakes.md</code>: the threshold advice in "Session 5" is the part to keep</td><td class="num">10 min</td></tr>
+  <tr><td>7</td><td>This page, sections 6 and 7, then "Check yourself"</td><td class="num">20 min</td></tr>
+  <tr><td></td><td><strong>Total</strong> (plus "Try it yourself", optional, about 75 minutes)</td><td class="num"><strong>about 3 h</strong></td></tr>
+</table>
+<div class="callout info"><p>The repo is <code>https://github.com/hasankanaan26/rag-week-bootcamp</code>. You can read everything in the browser; you only need a clone to run it. Each <code>docs/session-0N.md</code> is mostly <code>curl</code> commands and discussion questions: read "Concepts Introduced" and "Files Created / Modified" closely and skim the rest. Every file named below is under <code>checkpoints/session-0N-…/app/</code> unless it says otherwise.</p></div>
+
+<h2>1. Why RAG: models make up your policies</h2>
+<p>Take T-1008: Sofia asks for her $59.99 back on earbuds delivered two months ago. Checkpoint 02 looks the order up and checks the money, and it has no rule about dates. It has never read a policy, so nothing tells it that refunds close 14 days after delivery.</p>
+<div class="callout plain"><p>A model only "knows" the text it was trained on, frozen at a cutoff date. Nimbus's refund policy (v2.3, effective 2026-06-01) was never in it. Ask anyway and it predicts likely words: "30-day no-questions-asked refund" is a very likely phrase, because thousands of shops have one. Fluent text that isn't true is a <strong>hallucination</strong>.</p></div>
+<div class="callout analogy"><p>A bright new hire on day one who never read the staff handbook, and who never says "I don't know".</p></div>
+<p>Writing "only answer from company policy" in the prompt does nothing if the policy isn't in the prompt. The fix has to put the right policy text in front of the model, on every request.</p>
+<div class="callout plain"><p><strong>RAG</strong>, Retrieval-Augmented Generation: before the model answers, your code looks up the relevant text and pastes it into the prompt. The model answers from that text and says where it read it.</p></div>
+<div class="figure">
+  <svg viewBox="0 0 1080 196" width="1040" height="189" role="img" aria-label="RAG in four steps: ticket, look up policy sections, build the prompt, the model answers with a citation">
+    <defs>
+      <marker id="arr7r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9db5b1"/></marker>
+    </defs>
+    <rect x="0" y="0" width="1080" height="196" fill="#0c1a1d" rx="12"/>
+    <g font-family="Segoe UI, sans-serif" font-size="18" fill="#eef6f3" text-anchor="middle" transform="translate(0,10)">
+      <rect x="12" y="10" width="216" height="96" rx="12" fill="#2e2a14" stroke="#ffc53d" stroke-width="2"/>
+      <text x="120" y="42" fill="#ffc53d" font-weight="700">The ticket</text>
+      <text x="120" y="68" font-size="16">"Could I get my</text>
+      <text x="120" y="90" font-size="16">$59.99 back?"</text>
+      <rect x="292" y="10" width="220" height="96" rx="12" fill="#0d3029" stroke="#01d294" stroke-width="2"/>
+      <text x="402" y="42" fill="#01d294" font-weight="700">Look it up</text>
+      <text x="402" y="68" font-size="16">find the 6 most</text>
+      <text x="402" y="90" font-size="16">relevant sections</text>
+      <rect x="576" y="10" width="220" height="96" rx="12" fill="#0d3029" stroke="#01d294" stroke-width="2"/>
+      <text x="686" y="42" fill="#01d294" font-weight="700">Build the prompt</text>
+      <text x="686" y="68" font-size="16">ticket + those</text>
+      <text x="686" y="90" font-size="16">6 sections</text>
+      <rect x="860" y="10" width="208" height="96" rx="12" fill="#251f3d" stroke="#b99cff" stroke-width="2"/>
+      <text x="964" y="42" fill="#b99cff" font-weight="700">The model answers</text>
+      <text x="964" y="68" font-size="16">and cites its source:</text>
+      <text x="964" y="90" font-size="16">refund-policy#window</text>
+      <line x1="228" y1="58" x2="284" y2="58" stroke="#9db5b1" stroke-width="2.5" marker-end="url(#arr7r)"/>
+      <line x1="512" y1="58" x2="568" y2="58" stroke="#9db5b1" stroke-width="2.5" marker-end="url(#arr7r)"/>
+      <line x1="796" y1="58" x2="852" y2="58" stroke="#9db5b1" stroke-width="2.5" marker-end="url(#arr7r)"/>
+      <text x="402" y="140" fill="#01d294" font-weight="700">Retrieval</text>
+      <text x="402" y="164" font-size="15" fill="#9db5b1">your code picks the text</text>
+      <text x="686" y="140" fill="#01d294" font-weight="700">Augmented</text>
+      <text x="686" y="164" font-size="15" fill="#9db5b1">your code adds the text</text>
+      <text x="964" y="140" fill="#b99cff" font-weight="700">Generation</text>
+      <text x="964" y="164" font-size="15" fill="#9db5b1">the model writes</text>
+    </g>
+  </svg>
+</div>
+<p class="small">Green is your code, violet is the model. The lookup is ordinary code: no model decides what to retrieve. The bootcamp's <code>docs/architecture.md</code> draws the same loop as Embed, Retrieve, Generate.</p>
+<div class="callout analogy"><p>An open-book exam. You don't memorise the textbook. You find the right page, answer from it, and can point to the page.</p></div>
+
+<h3>Three ways to give a model your data</h3>
+<table>
+  <tr><th></th><th>Good for</th><th>Weak spot</th></tr>
+  <tr><td><strong>RAG</strong>: look up the right pages for each question</td><td>Facts that change; answers that must name a source</td><td>If the lookup misses the page, the answer is wrong</td></tr>
+  <tr><td><strong>Fine-tuning</strong>: train the model further on your examples</td><td>Tone, format, one narrow skill</td><td>Bad at exact facts; stale the day the policy changes</td></tr>
+  <tr><td><strong>Long context</strong>: paste every document into every prompt</td><td>A small set of documents that rarely changes</td><td>The one line that matters is lost in the pile, and the pile keeps growing</td></tr>
+</table>
+<p>Deskhand already tried long context. Checkpoint 00's <code>load_all_policies()</code> in <code>bot.py</code> glues all six policy files into every prompt: about 2,300 tokens, under a tenth of a cent per ticket on gpt-4.1-mini. Cost isn't the problem. Accuracy is (v1 still made things up with every section in front of it), and so are sources (nobody can tell which section an answer used) and growth (six files today, thousands of pages at a real company). Fine-tuning changes how a model writes, not what it reliably knows: a fine-tuned bot still invents policy, in your house style.</p>
+
+<h2>2. Search by meaning: embeddings</h2>
+<p>Sofia's ticket never says "refund". She asks for her money back. Search the six policy files for "money back" and you get zero hits: Ctrl+F, SQL <code>LIKE</code> and a regex all compare characters. A list of synonyms never ends: "reimburse", "my cash", "return the funds", "chargeback". We need search that matches meaning, not spelling.</p>
+<div class="callout plain"><p>An <strong>embedding</strong> is a list of numbers that stands for the meaning of a text. Texts that mean similar things get similar lists. An embedding model turns any text, one word or a whole policy section, into a list of the same length. No person picks the numbers; they come out of training.</p></div>
+<pre><code>"Could I get my $59.99 back?"  -&gt;  [0.021, -0.013, 0.044, …]   <span class="comment"># 1,536 numbers; these values are made up</span></code></pre>
+<div class="callout analogy"><p>GPS coordinates for meaning: close coordinates, nearby places. Close lists, similar meaning.</p></div>
+<div class="figure">
+  <svg viewBox="0 0 900 340" width="900" height="340" role="img" aria-label="A 2-D sketch of embedding space: refund phrases cluster together, shipping phrases in another cluster, defect phrases in a third, and ticket T-1008 lands in the refund cluster">
+    <defs>
+      <marker id="arr7a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#6f8f8a"/></marker>
+    </defs>
+    <rect x="0" y="0" width="900" height="340" fill="#0c1a1d" rx="12"/>
+    <g font-family="Segoe UI, sans-serif" font-size="18" transform="translate(0,4)">
+      <line x1="40" y1="300" x2="870" y2="300" stroke="#35524f" stroke-width="1.5" marker-end="url(#arr7a)"/>
+      <line x1="40" y1="300" x2="40" y2="14" stroke="#35524f" stroke-width="1.5" marker-end="url(#arr7a)"/>
+      <text x="200" y="36" fill="#01d294" text-anchor="middle">"refund" · "money back" · "reimburse"</text>
+      <ellipse cx="200" cy="112" rx="140" ry="62" fill="#0d3029" stroke="#01d294" stroke-width="1.5"/>
+      <circle cx="140" cy="110" r="8" fill="#01d294"/>
+      <circle cx="200" cy="88" r="8" fill="#01d294"/>
+      <circle cx="185" cy="138" r="8" fill="#01d294"/>
+      <path d="M245 115 l10 -10 l10 10 l-10 10 z" fill="#ff7a7a"/>
+      <text x="272" y="122" fill="#ff7a7a" font-size="16">T-1008</text>
+      <text x="650" y="36" fill="#5aa2ff" text-anchor="middle">"late delivery" · "tracking stuck"</text>
+      <ellipse cx="650" cy="108" rx="140" ry="58" fill="#112a45" stroke="#5aa2ff" stroke-width="1.5"/>
+      <circle cx="600" cy="112" r="8" fill="#5aa2ff"/>
+      <circle cx="660" cy="90" r="8" fill="#5aa2ff"/>
+      <circle cx="700" cy="130" r="8" fill="#5aa2ff"/>
+      <text x="430" y="196" fill="#ffc53d" text-anchor="middle">"cracked case" · "defective"</text>
+      <ellipse cx="430" cy="248" rx="130" ry="36" fill="#2e2a14" stroke="#ffc53d" stroke-width="1.5"/>
+      <circle cx="395" cy="245" r="8" fill="#ffc53d"/>
+      <circle cx="460" cy="255" r="8" fill="#ffc53d"/>
+      <text x="866" y="324" fill="#9db5b1" font-size="15" text-anchor="end">a 2-D sketch: the real space has 1,536 directions</text>
+    </g>
+  </svg>
+</div>
+<p class="small">A cartoon. Nobody designed these regions; they fall out of training. T-1008, the red diamond, lands among the refund phrases though it never says "refund". Where would "my parcel never came" land? In the blue group, sharing no word with "late delivery".</p>
+<ul>
+  <li><strong>It's a separate model.</strong> Not the chat model: a much cheaper one that writes no text. Deskhand's default is OpenAI's <code>text-embedding-3-small</code>, 1,536 numbers per text. Anthropic has no embedding API, so Claude users still embed with OpenAI or Azure.</li>
+  <li><strong>One embedding model for both sides.</strong> Embed the documents with one model and the queries with another, and the scores are meaningless: no error, just wrong results. Each model has its own map. Change the model, rebuild the index.</li>
+</ul>
+
+<h2>3. How close is close: cosine similarity</h2>
+<div class="callout plain"><p>Treat each list of numbers as an arrow and ask how closely two arrows point the same way. That score is <strong>cosine similarity</strong>: 1 means the same direction (same meaning), 0 means at right angles.</p></div>
+<div class="callout analogy"><p>Two people pointing at the sky. Both at the same star: 1. One points north, one east: 0. How far apart they stand doesn't matter, only the direction.</p></div>
+<pre><code>cosine(a, b) = (a1×b1 + a2×b2 + … + an×bn) / (length(a) × length(b))
+
+<span class="comment"># OpenAI's embeddings already have length 1, so it's just:</span>
+cosine(a, b) = a1×b1 + a2×b2 + … + an×bn      <span class="comment"># multiply pairs, add up</span></code></pre>
+<h3>By hand, with 3 numbers instead of 1,536</h3>
+<p class="small">Pretend the model has three directions: about money, about delivery, something went wrong.</p>
+<table>
+  <tr><th>Text</th><th>money</th><th>delivery</th><th>went wrong</th></tr>
+  <tr><td>"refund"</td><td>0.8</td><td>0.0</td><td>0.6</td></tr>
+  <tr><td>"money back"</td><td>0.6</td><td>0.0</td><td>0.8</td></tr>
+  <tr><td>"late delivery"</td><td>0.0</td><td>0.8</td><td>0.6</td></tr>
+</table>
+<pre><code>refund · money back    = 0.8×0.6 + 0.0×0.0 + 0.6×0.8 = 0.48 + 0 + 0.48 = 0.96
+refund · late delivery = 0.8×0.0 + 0.0×0.8 + 0.6×0.6 = 0    + 0 + 0.36 = 0.36</code></pre>
+<p class="small">Every row has length 1 (0.8² + 0.6² = 0.64 + 0.36 = 1), so multiply-and-add is the whole calculation. The toy numbers were picked so the sums come out round; real vectors have 1,536 numbers nobody chose and nobody named.</p>
+<h3>What real scores look like</h3>
+<p>Measured on <code>text-embedding-3-small</code>: "refund" and "money back" score <strong>0.60</strong>; "late delivery" and "my parcel never came" <strong>0.47</strong>; "refund" and "my parcel never came" <strong>0.25</strong>. None of the close pairs shares a word. Deskhand's 27 policy sections score between 0.05 and 0.69 against each other, median 0.36.</p>
+<div class="callout watch"><p>0.60 is not "60% similar", and real text rarely scores near 0. There is no universal "good" score. Read scores next to each other, within one query.</p></div>
+<div class="callout info"><p><strong>Distance or similarity?</strong> Deskhand's Qdrant reports cosine similarity: higher is closer. The bootcamp's Chroma reports a <em>distance</em>: lower is closer. Its default, <code>l2</code>, is the squared straight-line distance, and for vectors of length 1 that is exactly <code>2 − 2 × cosine</code>. So a Chroma distance of 0.8 is a cosine of 0.6. Keep that in your pocket for checkpoint 5.</p></div>
+
+<h2>4. From numbers to search</h2>
+<div class="callout plain"><p>A <strong>chunk</strong> is one piece of a document with its own embedding. The stored embeddings are the <strong>index</strong>: what every search reads. A <strong>vector store</strong> is the database that keeps each vector with its text and labels (metadata) and finds the nearest ones.</p></div>
+<ol>
+  <li><strong>Once</strong> (and again whenever a document changes): cut the documents into chunks, embed every chunk, store them.</li>
+  <li><strong>Per question</strong>: embed the question (one small call).</li>
+  <li>Score it against the stored chunks.</li>
+  <li>Hand the <em>k</em> closest to the model. Deskhand's <em>k</em> is 6 (<code>TOP_K</code>); the bootcamp's is 3.</li>
+</ol>
+<p>In Deskhand's <code>checkpoints/03-rag</code>, which you open on Monday, a chunk is one <code>##</code> section of a policy file: 27 sections from six files in <code>shared/policies/</code>. Building the index costs about 2,000 embedding tokens, about $0.00004. The store is Qdrant in local mode: a folder, <code>qdrant_data/</code>, no server.</p>
+<h3>Where similarity search goes wrong</h3>
+<div class="cards">
+  <div class="card"><h4>Always answers</h4><p>You get <em>k</em> results even when nothing is relevant. T-1035 asks about price matching, which the pack doesn't cover, and still gets six sections back.</p></div>
+  <div class="card"><h4>Vague</h4><p>"my order" is a little close to everything and very close to nothing.</p></div>
+  <div class="card"><h4>Negation</h4><p>"can <em>never</em> be refunded" lands near "can be refunded". One word barely moves the numbers.</p></div>
+  <div class="card"><h4>Exact IDs</h4><p>"status of O-48291": an order number has no meaning to match. The order API wins.</p></div>
+</div>
+<div class="callout watch"><p>Retrieval ranks by meaning, not by authority. A refund-window question lands near <code>refund-policy#window</code> (14 days from delivery) and <code>returns-and-exchanges#returns-window</code> (30 days) alike, so both come back together. Which one applies is not a search question. Monday starts there.</p></div>
+<p class="small">Scale, for later: Deskhand checks every stored vector, 27 of them, which is instant. Ten million chunks of 1,536 numbers is about 61 GB of vectors per query, so large stores use an <strong>ANN index</strong> (approximate nearest neighbour, for example HNSW): like a B-tree for vectors, it may now and then miss the true closest one, in exchange for answering in milliseconds.</p>
+
+<h2>5. The bootcamp, checkpoint by checkpoint</h2>
+<p><code>rag-week-bootcamp</code> builds a question-answering service over a fictional company's documents: Acme Corp's leave, expense, remote-work and onboarding policies, coding standards, an FAQ, messy meeting notes and a team directory CSV, ten files in <code>data/knowledge/</code>. It is FastAPI, ChromaDB and plain functions, with no LangChain on purpose (<code>docs/architecture.md</code> says why). Deskhand's 03-rag uses LangChain's <code>QdrantVectorStore</code> and <code>MarkdownHeaderTextSplitter</code>, so the bootcamp is the same pattern with the wrapping taken off. One LLM provider does both chat and embeddings, picked by <code>LLM_PROVIDER</code>: <code>gemini</code> or <code>azure</code>.</p>
+<p>Each checkpoint is a complete copy of the app after that step, so you can read any one of them on its own. For each: the one idea, what to open, and where Deskhand does the same thing.</p>
+
+<div class="cp">
+  <h3>1 · <code>session-01-baseline</code>: grounding by hand</h3>
+  <dl>
+    <dt>The idea</dt><dd>Grounding means putting the facts in the prompt. <code>POST /ask</code> answers from the model alone and invents a number of vacation days. <code>POST /ask/grounded</code> pastes a hard-coded leave-policy snippet into the prompt and says 20, and says it doesn't know about Git branching, which isn't in the snippet.</dd>
+    <dt>Open</dt><dd><code>docs/session-01.md</code>, <code>prompts/grounded_answer.py</code>, <code>routers/ask.py</code></dd>
+    <dt>In Deskhand</dt><dd>Checkpoint 00's <code>load_all_policies()</code>: the same idea with every policy pasted in and no selection.</dd>
+  </dl>
+</div>
+
+<div class="cp">
+  <h3>2 · <code>session-02-chunking</code>: cut documents into pieces</h3>
+  <dl>
+    <dt>The idea</dt><dd>You retrieve pieces, not files. <code>chunk_document()</code> cuts every 500 characters with a 50-character overlap, so a sentence cut at a boundary survives whole in a neighbour. <code>chunk_by_sections()</code> cuts before each <code>#</code>, <code>##</code> or <code>###</code> heading instead. <code>loader.py</code> turns <code>.md</code>, <code>.csv</code>, <code>.pdf</code> and <code>.json</code> into plain text first, so the chunker only sees text.</dd>
+    <dt>Open</dt><dd><code>docs/session-02.md</code> (the two trade-off tables), <code>rag/chunker.py</code>, <code>rag/loader.py</code>, <code>routers/ingest.py</code></dd>
+    <dt>In Deskhand</dt><dd><code>ingest.py</code> cuts each policy file on <code>##</code> only: 27 sections of about 75 tokens, one rule each, and no overlap needed because no section is ever cut.</dd>
+  </dl>
+  <div class="callout simpler"><p>The fixed chunker counts characters, not sentences, and the CSV loader joins every row into one text before it is cut. So a team-directory record can be split across two chunks. Wednesday: one parser per format, and a CSV row is one chunk.</p></div>
+</div>
+
+<div class="cp">
+  <h3>3 · <code>session-03-embeddings</code>: vectors, a store, a search</h3>
+  <dl>
+    <dt>The idea</dt><dd><code>embed_texts()</code> turns every chunk into a vector in one batch. <code>store.py</code> upserts them into a Chroma collection with ids like <code>leave-policy.md_0</code>, and <code>search()</code> returns the closest chunks with a distance, lower is closer. <code>GET /search</code> tests retrieval with no chat-model call; <code>POST /embed</code> prints the distances between any texts you send.</dd>
+    <dt>Open</dt><dd><code>docs/session-03.md</code> (the best of the eight for this weekend), <code>rag/embedder.py</code>, <code>rag/store.py</code>, <code>routers/embed.py</code></dd>
+    <dt>In Deskhand</dt><dd><code>llm.embed_texts</code>, metered so every call has a cost; Qdrant's <code>policies</code> collection with cosine; ids from <code>uuid5("doc_id#section_id")</code>, so re-running <code>ingest.py</code> replaces sections instead of duplicating them.</dd>
+  </dl>
+  <div class="callout watch"><p><code>/embed</code> prints the plain straight-line distance, while Chroma's search reports the squared one. The two endpoints' numbers are not on the same scale.</p></div>
+  <div class="callout simpler"><p>Ids are file name plus chunk number. Re-ingest with bigger chunks and the old higher-numbered chunks stay in the store, unless you pass <code>fresh=true</code> to wipe it. Wednesday's <code>kb_sync.py</code> re-indexes only the file that changed, and removes a deleted one.</p></div>
+</div>
+
+<div class="cp">
+  <h3>4 · <code>session-04-rag-pipeline</code>: retrieve, inject, generate</h3>
+  <dl>
+    <dt>The idea</dt><dd>The whole pattern. <code>retrieve()</code> embeds the question and returns the top 3 chunks; <code>build_context()</code> labels each one <code>[Source: file]</code>; the prompt says to answer from that context. <code>prompt_style=minimal</code> swaps in a bare prompt so you can watch the same chunks produce a worse answer.</dd>
+    <dt>Open</dt><dd><code>docs/session-04.md</code>, <code>rag/retriever.py</code>, <code>routers/query.py</code>, <code>prompts/rag_answer.py</code> next to <code>prompts/rag_answer_minimal.py</code></dd>
+    <dt>In Deskhand</dt><dd><code>retrieve_policy</code> in <code>nodes.py</code> runs on every ticket before the planner. Its query is the triage category plus the ticket's first 500 characters (<code>build_query</code> in <code>retrieve.py</code>). The planner must cite <code>doc_id#section_id</code>, and rule 5 in <code>rules.py</code> rejects a refund or replacement that cites nothing, or cites a section that wasn't retrieved.</dd>
+  </dl>
+  <div class="callout simpler"><p>The response's <code>sources</code> are every chunk retrieved, whether the answer used them or not, and nothing checks the answer against them. In Deskhand a citation is checked in code.</p></div>
+</div>
+
+<div class="cp">
+  <h3>5 · <code>session-05-transparency</code>: knowing when it doesn't know</h3>
+  <dl>
+    <dt>The idea</dt><dd>Look at the best distance. At most 0.8 is "high", at most 1.4 "medium", above that "low"; above 1.6 the service says "I don't have information about that" without calling the model. <code>GET /ui</code> shows the answer with a confidence badge, its sources and their distances.</dd>
+    <dt>Open</dt><dd><code>docs/session-05.md</code>, <code>rag/retriever.py</code> (<code>score_confidence</code>, <code>is_no_result</code>), <code>config.py</code> (the three thresholds); skim <code>static/query.html</code></dd>
+    <dt>In Deskhand</dt><dd>No threshold at all. <code>retrieve.py</code> says to read the score "as a ranking within one query, not as a confidence", and T-1035 gets six sections whatever they score.</dd>
+  </dl>
+  <div class="callout simpler"><p>A fixed distance is a number for one embedding model and one corpus; the doc says so itself. With section 3's formula, 0.8, 1.4 and 1.6 are cosines of 0.6, 0.3 and 0.2. On Deskhand's model, the 27 policy sections score a median of 0.36 against each other, so "close enough" by distance says little about whether a chunk answers the question. In our run on 29 October (Azure embeddings), all seven in-domain eval questions came back "medium", none "high", and "Who is the CEO of Acme Corp?", which no document answers, scored 0.87: closer than the right leave-policy chunk for the vacation question, at 1.12. On Monday a model grades the chunks, enough or not, before anything is written.</p></div>
+</div>
+
+<div class="cp">
+  <h3>6 · <code>session-06-logging</code>: why did it say that?</h3>
+  <dl>
+    <dt>The idea</dt><dd>Every request gets an id (<code>req_xxxxxxxx</code>), and every step logs a line with it: the question, how many chunks, best and worst distance, the sources, the confidence. <code>POST /compare</code> runs the plain model and RAG side by side. The failure-modes table (out of domain, vague, subjective, temporal, cross-domain, too broad, near miss) is the part to keep.</dd>
+    <dt>Open</dt><dd><code>docs/session-06.md</code>, <code>main.py</code> (<code>logging.basicConfig</code>), the <code>logger.info</code> lines in <code>routers/query.py</code>, <code>routers/compare.py</code></dd>
+    <dt>In Deskhand</dt><dd>The request-id event log you know from checkpoint 02 (<code>obslog.log_event</code>). In 03-rag, <code>retrieve_policy</code> logs <code>policy.retrieved</code> with the section ids and the top score, so "what did the planner see?" is answered from the log alone.</dd>
+  </dl>
+  <p class="small">The doc says the documents "don't track versions". The corpus disagrees: <code>expense-policy-2024-update.md</code> supersedes parts of <code>expense-policy.md</code>, and both are indexed. Remember it for Check 4.</p>
+</div>
+
+<div class="cp">
+  <h3>7 · <code>session-07-retrieval</code>: what you search for, and where</h3>
+  <dl>
+    <dt>The idea</dt><dd><code>rewrite=true</code> sends the question to the model first, to rephrase it with the words the documents use ("What about time off?" becomes something like "employee vacation leave PTO policy"). <code>source=leave-policy.md</code> restricts the search to one file, as a filter inside Chroma's query. Read "When Rewriting Hurts" too: a precise question can get worse. In our run, the rewrite took "What about time off?" from a best distance of 1.12 to 0.84.</dd>
+    <dt>Open</dt><dd><code>docs/session-07.md</code>, <code>prompts/rewrite_query.py</code>, <code>rag/retriever.py</code> (<code>rewrite_query</code>, <code>retrieve</code>), <code>rag/store.py</code> (<code>search</code> with <code>where</code>)</dd>
+    <dt>In Deskhand</dt><dd><code>build_query</code> already adds the triage category: a rewrite with no model call. <code>retrieve.py</code>'s <code>doc_ids</code> is a filter inside Qdrant's search, not rows dropped afterwards.</dd>
+  </dl>
+  <div class="callout simpler"><p>The rewrite runs on every request that asks for it, wanted or not, and costs a model call each time. The source filter is whatever the caller passes. On Monday a rewrite happens only after a grade says the chunks weren't enough, at most twice. On Wednesday the filter becomes access control: required, set from the caller's channel, never by the model.</p></div>
+</div>
+
+<div class="cp">
+  <h3>8 · <code>session-08-evaluation</code>: test it, and guard it</h3>
+  <dl>
+    <dt>The idea</dt><dd><code>eval/test_questions.json</code> holds 12 cases: 5 factual, 2 vague, 2 out of domain, 3 injection. <code>eval/run_eval.py</code> sends each one to the running service and checks that the expected file was among the sources and the expected keywords are in the answer. Injection cases go to <code>POST /safety/check</code>, where a second prompt asks the model to answer SAFE or UNSAFE (LLM-as-judge).</dd>
+    <dt>Open</dt><dd><code>docs/session-08.md</code>, <code>eval/test_questions.json</code>, <code>eval/run_eval.py</code>, <code>prompts/safety_check.py</code>, <code>routers/safety.py</code></dd>
+    <dt>In Deskhand</dt><dd>T-1006's $10,000 "refund": the prompt asks the model to treat ticket text as data, and <code>rules.py</code> keeps the money in place whatever the model says. On Friday you meet the golden ticket set and the RAGAS evals in <code>evals/rag_evals.py</code>.</dd>
+  </dl>
+  <div class="callout simpler"><p><code>/query</code> never calls <code>/safety/check</code>: the injection cases test the classifier on its own, not the service. A judge is one more model call that a clever enough message can talk round, which is why Deskhand's limits are <code>if</code> statements. And a keyword check can pass a wrong answer and fail a right one (Check 4).</p></div>
+</div>
+
+<h2>6. Where the bootcamp stops, and where next week starts</h2>
+<p>The bootcamp is right to keep things simple: you can see every step. Next week takes the same steps to production, on Deskhand. The bootcamp's limits are the agenda.</p>
+<table>
+  <tr><th>The bootcamp</th><th>Next week</th><th>When</th></tr>
+  <tr><td>Retrieval decides what the answer says, including the rules</td><td>Rules you can check against data are code; retrieval grounds the words and the citation</td><td>Mon</td></tr>
+  <tr><td>Confidence from one distance threshold</td><td>A model grades the chunks; if they aren't enough, rewrite and retry, at most twice, every step in the trace</td><td>Mon</td></tr>
+  <tr><td>One folder of Markdown, CSV and PDF, all turned into text</td><td>A knowledge base of manuals, macros, carrier pages and emails; one parser per format</td><td>Wed</td></tr>
+  <tr><td>Two expense policies indexed side by side, nothing says which is current</td><td>Status and permissions come from the source system's manifest; superseded documents excluded</td><td>Wed</td></tr>
+  <tr><td><code>source=</code> filter chosen by the caller</td><td>An access filter inside the query, required, from the caller's channel</td><td>Wed</td></tr>
+  <tr><td>Re-ingest everything, or <code>fresh=true</code></td><td>Re-index only the file that changed; remove deleted ones</td><td>Wed</td></tr>
+  <tr><td>Dense search only, top 3</td><td>Hybrid (dense + keyword), then a reranker over a wider pool, each measured</td><td>Fri</td></tr>
+  <tr><td>12 cases, source and keyword match</td><td>Hit@5, MRR and Recall@5 with no model call, and the change against a saved baseline</td><td>Fri</td></tr>
+</table>
+
+<div class="callout monday">
+  <p style="font-size:1.25em; margin:0.2em 0 0.4em;"><strong>Code decides, retrieval grounds.</strong></p>
+  <p>Eligibility (the return window, final sale, amount caps, whose order it is) is checked in code against the order API. Retrieval supplies what no rule covers: how to fix the product, what the carrier announced, how a similar ticket was solved, the wording and the citation. The 14 vs 30 day trap is where you'll see it: better chunking doesn't fix it, a rule does.</p>
+  <ul>
+    <li><strong>Monday 2 November · Retrieval as a tool.</strong> The return window becomes a rule in code. The agent searches a support knowledge base when a ticket needs product or shipping knowledge, grades what it found, and retries with a better query, capped.</li>
+    <li><strong>Wednesday 4 November · Production ingestion.</strong> The source is a system: one parser per format, permissions and freshness from the source's manifest, re-indexing only what changed.</li>
+    <li><strong>Friday 6 November · Retrieval you can defend.</strong> Measure before you fix, then change one lever at a time and measure again; citations and RAGAS on the answers.</li>
+  </ul>
+  <p class="small">Embeddings get fifteen minutes on Monday, no more. This page is the rest.</p>
+</div>
+
+<h2>7. Check yourself</h2>
+<p>Five questions. Decide your answer before you read the answers at the end.</p>
+<h3>Check 1: code, retrieval, or the order API?</h3>
+<ol>
+  <li>"Is order O-40021 still inside its refund window?"</li>
+  <li>"The AeroFit earbuds won't pair after the update, what do I do?"</li>
+  <li>"What's the status of O-48291?"</li>
+  <li>Writing the reply that declines Sofia's refund, with the policy it rests on.</li>
+</ol>
+<h3>Check 2: by hand</h3>
+<p>With the three-number table in section 3: is "late delivery" closer to "refund" (0.36) or to "money back"? Work it out on paper.</p>
+<h3>Check 3: how many come back?</h3>
+<p>T-1035 asks about price matching. Nimbus's policy pack has no price-match policy. How many sections does Deskhand's <code>retrieve()</code> return? And what would the bootcamp's checkpoint 5 do with the same kind of question?</p>
+<h3>Check 4: the eval that grades the wrong thing</h3>
+<p>The bootcamp's eval has this case: "What is the maximum amount for meal reimbursement?", expected source <code>expense-policy.md</code>, expected keywords <code>50</code> and <code>meal</code>. Open <code>data/knowledge/expense-policy-2024-update.md</code>. What's wrong with the case? Then look at the first case, about vacation days, and <code>leave-policy.md</code>.</p>
+<h3>Check 5: two numbers, one meaning</h3>
+<p>The bootcamp calls a best distance of 0.8 "high confidence". In Deskhand, "refund" and "money back" score 0.60. Is a distance of 0.8 closer than a score of 0.60, further, or the same? Assume vectors of length 1.</p>
+
+<h2>Answers</h2>
+<ol>
+  <li><strong>Code, retrieval, or the order API?</strong> 1 code: the window is a date sum from <code>delivered_at</code>, the same every run, and a search can't do arithmetic. 2 retrieval: no rule covers pairing trouble, and the answer lives in a help article. 3 the order API: an id has no meaning to match. 4 both: code has already decided "no"; retrieval supplies the wording and the citation. That's Monday's line.</li>
+  <li><strong>By hand.</strong> money back · late delivery = 0.6×0.0 + 0.0×0.8 + 0.8×0.6 = 0.48. Closer than "refund" (0.36), because "money back" carries more of the "went wrong" direction. A vector mixes topic, mood and urgency, so the nearest neighbour isn't always the one you'd file under the same topic. The real model said 0.34 and 0.32: a near tie, the other way round. Check real results; don't reason from the cartoon.</li>
+  <li><strong>How many come back?</strong> Six, always: <code>TOP_K = 6</code>, and similarity search ranks, it never filters. The recorded run put <code>warranty#remedies</code> first, pulled by the customer's side remark about a snapped clip. Cite that for a price match and the plan looks grounded and is wrong. The bootcamp says "I don't have information about that" only when the best distance crosses 1.6, a cosine of 0.2. In our run that caught "What is the capital of France?", but "Who is the CEO of Acme Corp?" scored 0.87 and went to the model; the model, not the threshold, said it didn't know. A threshold catches questions about another subject entirely, not questions about your subject that your documents don't answer, and T-1035 is the second kind.</li>
+  <li><strong>The eval that grades the wrong thing.</strong> The 2024 update raised team meals from $50 to $75 per person and the travel per diem from $60 to $75. The case expects the old file and the old number, so it would pass the stale answer and fails the current one. In our run on 29 October the service answered $75 from the update, and the case failed. Both files are in the index and nothing says which is current: that's Wednesday's manifest and <code>status</code>. The vacation case expects "15"; <code>leave-policy.md</code> says 20 days, the service said 20, and the case failed. A golden set is your judgement, and it can be wrong.</li>
+  <li><strong>Two numbers, one meaning.</strong> The same. Chroma's default distance is the squared straight-line distance, which for vectors of length 1 is 2 − 2 × cosine: 2 − 2 × 0.6 = 0.8. Distance down, similarity up, one geometry. Before you compare two systems' scores, find out what each one reports.</li>
+</ol>
+
+<h2>Try it yourself (optional, about 75 minutes)</h2>
+<p>Everything above, with your own hands. You need Python 3.12 (the repo's <code>Dockerfile</code> uses it) and either an Azure OpenAI resource with a chat and an embedding deployment, or a Gemini API key from Google AI Studio. A whole evening is a few cents at most.</p>
+<h3>Set it up (15 min)</h3>
+<pre><code>git clone https://github.com/hasankanaan26/rag-week-bootcamp.git
+cd rag-week-bootcamp
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+Copy-Item .env.example .env</code></pre>
+<p>Then edit <code>.env</code>. For Azure, your Deskhand <code>.env</code> already uses the same names: set <code>LLM_PROVIDER=azure</code> and copy the five <code>AZURE_OPENAI_</code> lines across. One provider does both chat and embeddings.</p>
+<pre><code>LLM_PROVIDER=azure
+AZURE_OPENAI_API_KEY=...
+AZURE_OPENAI_ENDPOINT=https://&lt;your-resource&gt;.openai.azure.com/
+AZURE_OPENAI_API_VERSION=2024-10-21
+AZURE_OPENAI_DEPLOYMENT=&lt;your chat deployment&gt;
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=&lt;your embedding deployment&gt;
+
+<span class="comment"># or, for Gemini:</span>
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_EMBEDDING_MODEL=text-embedding-004</code></pre>
+<p class="small">If Gemini says the embedding model isn't found, set <code>GEMINI_EMBEDDING_MODEL=gemini-embedding-001</code> (the newer model <code>docs/session-03.md</code> lists) and ingest with <code>fresh=true</code>.</p>
+<div class="callout watch"><p>Start a checkpoint with <code>run_checkpoint.py</code>, not with the README's <code>uvicorn app.main:app</code>: the top-level <code>app/</code> is an empty starter with no <code>main.py</code>. The runner renames it out of the way while a checkpoint runs, and puts it back on Ctrl+C. If a crash leaves it renamed, <code>py run_checkpoint.py --restore</code>. In Windows PowerShell, <code>curl</code> is not the real curl, so the docs' <code>curl</code> lines fail: use the Swagger page at <code>/docs</code>, or the PowerShell lines below. If <code>/docs</code> shows the wrong session's title, an old server is still holding port 8000: close every terminal that ran one and start again.</p></div>
+<h3>Checkpoint 4: the loop (20 min)</h3>
+<pre><code>py run_checkpoint.py session-04-rag-pipeline          <span class="comment"># http://localhost:8000/docs</span></code></pre>
+<p>In a second terminal:</p>
+<pre><code>Invoke-RestMethod -Method Post http://localhost:8000/ingest | Select-Object files_processed, total_chunks, chunks_stored
+$q = @{ question = "Can I expense a monitor for my home office?" } | ConvertTo-Json
+Invoke-RestMethod -Method Post http://localhost:8000/query -ContentType "application/json" -Body $q | ConvertTo-Json -Depth 4
+Invoke-RestMethod -Method Post "http://localhost:8000/query?prompt_style=minimal" -ContentType "application/json" -Body $q | ConvertTo-Json -Depth 4</code></pre>
+<p>Read the answer, then the three <code>sources</code>: which files, and does the answer use them? Try <code>GET /search</code> in <code>/docs</code> with the same question to see the distances. The index lives in <code>chroma_data/</code> at the repo root and is shared by every checkpoint. Changed provider or embedding model? Ingest again with <code>fresh=true</code>.</p>
+<h3>Checkpoint 7: confidence, rewriting, filters (25 min)</h3>
+<pre><code>py run_checkpoint.py session-07-retrieval             <span class="comment"># Ctrl+C the first one; then http://localhost:8000/ui</span></code></pre>
+<p>Ask in <code>/ui</code>: the badge and the distances. Then in <code>/docs</code>, <code>POST /query</code> with <code>rewrite=true</code> and look at <code>rewritten_query</code>, and with <code>source=expense-policy-2024-update.md</code>. Ask "What about time off?" with and without the rewrite, and compare the best distance. If something errors, the server terminal has the <code>req_…</code> log lines.</p>
+<h3>Checkpoint 8: run the eval (10 min, if you have time)</h3>
+<pre><code>py run_checkpoint.py session-08-evaluation
+py -X utf8 checkpoints\session-08-evaluation\eval\run_eval.py   <span class="comment"># second terminal, repo root</span></code></pre>
+<p class="small">Without <code>-X utf8</code> the script can crash on its "→" arrows in a Windows console. Our run on 29 October scored 5 of 12: the vacation and meal cases failed on correct answers (Check 4), the two vague cases missed a keyword, and on Azure the three injection cases came back as 500 errors, because Azure's content filter blocked the judge's prompt before any model read it. Count which failures are the system's and which are the test's.</p>
+
+<h3>One exercise: catch it answering wrongly</h3>
+<p>Find one question the bootcamp answers wrongly. One we found: "What is the team meal limit?" with <code>source=expense-policy.md</code> answers $50, because the filter hides the 2024 update. Find your own. Ideas: anything the two expense files disagree on, anything from <code>meeting-notes.md</code> that says "next month" or "by friday" with no date, a near miss like parental leave for contractors. For your question write down:</p>
+<ol>
+  <li>the question and the answer;</li>
+  <li>the retrieved chunks: source file, distance, the first line of each;</li>
+  <li>whether the chunk with the right answer was retrieved at all, and at which rank;</li>
+  <li>so which part failed: retrieval (the right chunk wasn't there) or generation (it was there, and the answer is still wrong).</li>
+</ol>
+<p>Bring it on Monday. Telling those two failures apart is where Friday starts.</p>
+
+<h2>On Monday</h2>
+<p>Bring your answers to the five checks and, if you ran it, your wrong answer with its chunks. Monday opens with T-1008 on checkpoint 02, the refund decided without reading a policy, then puts the return window where it belongs, in code, and gives the agent a knowledge base to search for everything a rule can't hold.</p>
+</body>
+</html>

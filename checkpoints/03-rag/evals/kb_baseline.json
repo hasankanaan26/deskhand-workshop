@@ -1,0 +1,3134 @@
+{
+  "created_at": "20261029T161020Z",
+  "embedding_model": "text-embedding-3-small",
+  "questions": 33,
+  "cost_usd": 0.036636,
+  "summary": {
+    "dense": {
+      "hit@1": 0.7037,
+      "hit@5": 0.9259,
+      "mrr": 0.8167,
+      "recall@5": 0.8704,
+      "questions_scored": 27,
+      "leaks": 0,
+      "stale_hits": 0,
+      "acl_trap_pass": "3/3",
+      "hit@5_by_kind": {
+        "multi-hop": 1.0,
+        "near-duplicate": 0.8333,
+        "single": 1.0,
+        "stale-trap": 1.0,
+        "vocab-gap": 0.8333
+      },
+      "ms_per_question": 30.303
+    },
+    "hybrid": {
+      "hit@1": 0.7407,
+      "hit@5": 1.0,
+      "mrr": 0.8284,
+      "recall@5": 0.963,
+      "questions_scored": 27,
+      "leaks": 0,
+      "stale_hits": 0,
+      "acl_trap_pass": "3/3",
+      "hit@5_by_kind": {
+        "multi-hop": 1.0,
+        "near-duplicate": 1.0,
+        "single": 1.0,
+        "stale-trap": 1.0,
+        "vocab-gap": 1.0
+      },
+      "ms_per_question": 37.5455
+    },
+    "hybrid+rerank": {
+      "hit@1": 0.9259,
+      "hit@5": 1.0,
+      "mrr": 0.963,
+      "recall@5": 0.9815,
+      "questions_scored": 27,
+      "leaks": 0,
+      "stale_hits": 0,
+      "acl_trap_pass": "3/3",
+      "hit@5_by_kind": {
+        "multi-hop": 1.0,
+        "near-duplicate": 1.0,
+        "single": 1.0,
+        "stale-trap": 1.0,
+        "vocab-gap": 1.0
+      },
+      "ms_per_question": 3052.3636,
+      "reranker": "llm gpt-4.1-mini"
+    }
+  },
+  "rows": {
+    "dense": [
+      {
+        "id": "kb-01",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-trailblazer-20k"
+        ],
+        "ranked": [
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-pocketbeat-mini",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.7491,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 635
+      },
+      {
+        "id": "kb-02",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-goodwill-credit"
+        ],
+        "ranked": [
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-safety-incidents",
+          "macro-shipping-delays",
+          "macro-safety-incidents",
+          "macro-no-order-number",
+          "macro-no-order-number"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.7134,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 10
+      },
+      {
+        "id": "kb-03",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-soundbar-mini"
+        ],
+        "ranked": [
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6876,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 9
+      },
+      {
+        "id": "kb-04",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "manual-powerhub-65w",
+          "ops-recall-powerhub",
+          "ops-recall-powerhub",
+          "past-tickets",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.6997,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-05",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-clearcast-webcam"
+        ],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6374,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 10
+      },
+      {
+        "id": "kb-06",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-cloudcomfort-mouse"
+        ],
+        "ranked": [
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-cloudcomfort-mouse",
+          "manual-typemaster",
+          "manual-cloudcomfort-mouse",
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6664,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-07",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-known-issue-halo-flicker"
+        ],
+        "ranked": [
+          "ops-known-issue-halo-flicker",
+          "manual-halo-lamp",
+          "manual-glowcore-bulbs",
+          "past-tickets",
+          "past-tickets",
+          "past-tickets",
+          "manual-ultraview-32-pro",
+          "ops-known-issue-aerofit-lite",
+          "ops-recall-powerhub",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.7397,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 13
+      },
+      {
+        "id": "kb-08",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-shipping-delays",
+          "past-tickets"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "macro-processing-order-changes",
+          "past-tickets",
+          "macro-processing-order-changes",
+          "macro-processing-order-changes"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.63,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-09",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-glowcore-bulbs"
+        ],
+        "ranked": [
+          "manual-glowcore-bulbs",
+          "manual-halo-lamp",
+          "manual-glowcore-bulbs",
+          "manual-clearcast-webcam",
+          "manual-glowcore-bulbs",
+          "manual-glowcore-bulbs",
+          "manual-ultraview-32-pro",
+          "manual-glowcore-bulbs",
+          "manual-pocketbeat-mini",
+          "manual-soundbar-mini"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.3197,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 10
+      },
+      {
+        "id": "kb-10",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-pocketbeat-mini"
+        ],
+        "ranked": [
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-trailblazer-20k",
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-aerofit-earbuds",
+          "manual-pocketbeat-mini",
+          "manual-trailblazer-20k",
+          "manual-halo-lamp",
+          "help-warranty-replacement"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.4481,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 13
+      },
+      {
+        "id": "kb-11",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-ultraview-27",
+          "past-tickets",
+          "manual-ultraview-27",
+          "past-tickets",
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-cloudcomfort-mouse",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.5581,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-12",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-aerofit-earbuds",
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "past-tickets",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.5206,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 10
+      },
+      {
+        "id": "kb-13",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster"
+        ],
+        "ranked": [
+          "manual-cloudcomfort-mouse",
+          "manual-ultraview-32-pro",
+          "manual-powerhub-65w",
+          "manual-glidetouch-trackpad",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-powerhub-65w",
+          "manual-halo-lamp",
+          "manual-pocketbeat-mini",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 20,
+        "top_score": 0.3687,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.05,
+          "recall@5": 0.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 9
+      },
+      {
+        "id": "kb-14",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-halo-lamp"
+        ],
+        "ranked": [
+          "manual-powerhub-65w",
+          "manual-pocketbeat-mini",
+          "manual-halo-lamp",
+          "manual-trailblazer-20k",
+          "manual-glowcore-bulbs",
+          "manual-glidetouch-trackpad",
+          "manual-powerhub-65w",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-cloudcomfort-mouse"
+        ],
+        "first_expected_rank": 3,
+        "top_score": 0.426,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 10
+      },
+      {
+        "id": "kb-15",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "carrier-eastvale-depot",
+          "macro-shipping-delays"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "carrier-eastvale-depot",
+          "carrier-eastvale-depot",
+          "past-tickets",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot",
+          "carrier-eastvale-depot",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6386,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-16",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "help-warranty-replacement",
+          "ops-known-issue-aerofit-lite"
+        ],
+        "ranked": [
+          "ops-known-issue-aerofit-lite",
+          "past-tickets",
+          "past-tickets",
+          "manual-aerofit-lite",
+          "manual-airbeat-headphones",
+          "past-tickets",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "ops-known-issue-halo-flicker",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6437,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-17",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-safety-incidents",
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "manual-powerhub-65w",
+          "ops-recall-powerhub",
+          "ops-recall-powerhub",
+          "manual-trailblazer-20k",
+          "past-tickets",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "past-tickets",
+          "past-tickets",
+          "macro-safety-incidents"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.5477,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-18",
+        "kind": "multi-hop",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement",
+          "manual-ultraview-27"
+        ],
+        "ranked": [
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6959,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-19",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-pocketbeat-mini",
+          "manual-typemaster-tkl",
+          "manual-aerofit-lite",
+          "manual-typemaster",
+          "manual-ultraview-27",
+          "manual-aerofit-earbuds",
+          "manual-soundbar-mini"
+        ],
+        "first_expected_rank": 6,
+        "top_score": 0.6355,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666,
+          "recall@5": 0.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-20",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-earbuds"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-aerofit-earbuds",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-typemaster-tkl",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6032,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-21",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-ultraview-32-pro"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.5918,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 13
+      },
+      {
+        "id": "kb-22",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster-tkl"
+        ],
+        "ranked": [
+          "manual-typemaster",
+          "manual-typemaster-tkl",
+          "manual-ultraview-27",
+          "manual-typemaster",
+          "manual-typemaster-tkl",
+          "manual-typemaster-tkl",
+          "manual-typemaster",
+          "manual-typemaster",
+          "manual-typemaster-tkl",
+          "manual-typemaster"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.6691,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-23",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-airbeat-headphones",
+          "manual-aerofit-lite",
+          "manual-typemaster-tkl",
+          "manual-aerofit-earbuds",
+          "manual-typemaster",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "help-warranty-replacement"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.5418,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 13
+      },
+      {
+        "id": "kb-24",
+        "kind": "near-duplicate",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-ultraview-32-pro",
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-trailblazer-20k",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-powerhub-65w",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.6473,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 13
+      },
+      {
+        "id": "kb-25",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-ultraview-32-pro",
+          "manual-clearcast-webcam",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "help-warranty-replacement"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.3896,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-26",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.3054,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-27",
+        "kind": "not-in-kb",
+        "caller_group": "support-agent",
+        "expected": [],
+        "ranked": [
+          "macro-goodwill-credit",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-shipping-delays",
+          "macro-processing-order-changes",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "past-tickets"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.3553,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-28",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "carrier-holiday-2026"
+        ],
+        "ranked": [
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.5654,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-29",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.5265,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 11
+      },
+      {
+        "id": "kb-30",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-typemaster",
+          "manual-glidetouch-trackpad",
+          "manual-clearcast-webcam"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.4876,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-31",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-airbeat-headphones",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.2586,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-32",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-airbeat-headphones",
+          "carrier-eastvale-depot",
+          "carrier-eastvale-depot",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.295,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      },
+      {
+        "id": "kb-33",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "manual-powerhub-65w",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-eastvale-depot",
+          "carrier-holiday-2026",
+          "carrier-eastvale-depot",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.246,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 12
+      }
+    ],
+    "hybrid": [
+      {
+        "id": "kb-01",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-trailblazer-20k"
+        ],
+        "ranked": [
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones",
+          "manual-powerhub-65w",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.75,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 35
+      },
+      {
+        "id": "kb-02",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-goodwill-credit"
+        ],
+        "ranked": [
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-no-order-number",
+          "macro-shipping-delays",
+          "macro-safety-incidents",
+          "ops-recall-powerhub",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 44
+      },
+      {
+        "id": "kb-03",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-soundbar-mini"
+        ],
+        "ranked": [
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-pocketbeat-mini",
+          "manual-soundbar-mini",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 39
+      },
+      {
+        "id": "kb-04",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "manual-powerhub-65w",
+          "ops-recall-powerhub",
+          "ops-recall-powerhub",
+          "past-tickets",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.8333,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 51
+      },
+      {
+        "id": "kb-05",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-clearcast-webcam"
+        ],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-powerhub-65w",
+          "manual-aerofit-earbuds",
+          "help-warranty-replacement"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 42
+      },
+      {
+        "id": "kb-06",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-cloudcomfort-mouse"
+        ],
+        "ranked": [
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-ultraview-32-pro",
+          "manual-cloudcomfort-mouse",
+          "manual-cloudcomfort-mouse",
+          "manual-typemaster",
+          "manual-cloudcomfort-mouse",
+          "manual-trailblazer-20k",
+          "manual-cloudcomfort-mouse",
+          "manual-cloudcomfort-mouse"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 38
+      },
+      {
+        "id": "kb-07",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-known-issue-halo-flicker"
+        ],
+        "ranked": [
+          "ops-known-issue-halo-flicker",
+          "manual-halo-lamp",
+          "past-tickets",
+          "ops-known-issue-aerofit-lite",
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "past-tickets",
+          "manual-glowcore-bulbs",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 45
+      },
+      {
+        "id": "kb-08",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-shipping-delays",
+          "past-tickets"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-processing-order-changes",
+          "macro-shipping-delays",
+          "macro-processing-order-changes",
+          "past-tickets",
+          "macro-processing-order-changes",
+          "macro-shipping-delays"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 48
+      },
+      {
+        "id": "kb-09",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-glowcore-bulbs"
+        ],
+        "ranked": [
+          "manual-glowcore-bulbs",
+          "manual-glowcore-bulbs",
+          "help-warranty-replacement",
+          "manual-halo-lamp",
+          "manual-pocketbeat-mini",
+          "manual-clearcast-webcam",
+          "carrier-holiday-2026",
+          "manual-glowcore-bulbs",
+          "manual-typemaster-tkl",
+          "manual-glowcore-bulbs"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.5714,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 40
+      },
+      {
+        "id": "kb-10",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-pocketbeat-mini"
+        ],
+        "ranked": [
+          "manual-trailblazer-20k",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-typemaster",
+          "manual-cloudcomfort-mouse",
+          "manual-aerofit-earbuds",
+          "manual-glidetouch-trackpad",
+          "manual-typemaster-tkl"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 0.5833,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 37
+      },
+      {
+        "id": "kb-11",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "past-tickets",
+          "macro-shipping-delays",
+          "manual-ultraview-32-pro",
+          "macro-safety-incidents",
+          "manual-ultraview-27",
+          "past-tickets",
+          "past-tickets",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 3,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 39
+      },
+      {
+        "id": "kb-12",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-aerofit-earbuds",
+          "past-tickets"
+        ],
+        "ranked": [
+          "past-tickets",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "help-warranty-replacement",
+          "ops-known-issue-aerofit-lite",
+          "manual-powerhub-65w",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.7,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 38
+      },
+      {
+        "id": "kb-13",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "manual-cloudcomfort-mouse",
+          "manual-powerhub-65w",
+          "manual-ultraview-32-pro",
+          "manual-typemaster",
+          "manual-typemaster",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-glidetouch-trackpad"
+        ],
+        "first_expected_rank": 5,
+        "top_score": 0.5625,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 37
+      },
+      {
+        "id": "kb-14",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-halo-lamp"
+        ],
+        "ranked": [
+          "manual-halo-lamp",
+          "manual-powerhub-65w",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-lite",
+          "manual-glidetouch-trackpad",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-powerhub-65w",
+          "manual-aerofit-earbuds",
+          "manual-glowcore-bulbs"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.75,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 35
+      },
+      {
+        "id": "kb-15",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "carrier-eastvale-depot",
+          "macro-shipping-delays"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "carrier-eastvale-depot",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 37
+      },
+      {
+        "id": "kb-16",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "help-warranty-replacement",
+          "ops-known-issue-aerofit-lite"
+        ],
+        "ranked": [
+          "ops-known-issue-aerofit-lite",
+          "past-tickets",
+          "past-tickets",
+          "manual-aerofit-lite",
+          "past-tickets",
+          "manual-airbeat-headphones",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "ops-known-issue-halo-flicker",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 39
+      },
+      {
+        "id": "kb-17",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-safety-incidents",
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "ops-recall-powerhub",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "ops-recall-powerhub",
+          "manual-trailblazer-20k",
+          "macro-safety-incidents",
+          "past-tickets",
+          "past-tickets",
+          "manual-powerhub-65w"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.8333,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 37
+      },
+      {
+        "id": "kb-18",
+        "kind": "multi-hop",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement",
+          "manual-ultraview-27"
+        ],
+        "ranked": [
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 34
+      },
+      {
+        "id": "kb-19",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-airbeat-headphones",
+          "manual-typemaster-tkl",
+          "manual-ultraview-27",
+          "manual-typemaster",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 4,
+        "top_score": 0.75,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 29
+      },
+      {
+        "id": "kb-20",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-earbuds"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-typemaster",
+          "manual-typemaster-tkl"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 30
+      },
+      {
+        "id": "kb-21",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-ultraview-32-pro"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 32
+      },
+      {
+        "id": "kb-22",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster-tkl"
+        ],
+        "ranked": [
+          "manual-typemaster",
+          "manual-aerofit-earbuds",
+          "manual-ultraview-27",
+          "manual-typemaster-tkl",
+          "manual-typemaster-tkl",
+          "manual-typemaster",
+          "manual-airbeat-headphones",
+          "manual-ultraview-32-pro",
+          "manual-typemaster-tkl",
+          "manual-aerofit-lite"
+        ],
+        "first_expected_rank": 4,
+        "top_score": 0.7,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 27
+      },
+      {
+        "id": "kb-23",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-airbeat-headphones",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-typemaster-tkl",
+          "manual-typemaster",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 3,
+        "top_score": 0.8333,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 35
+      },
+      {
+        "id": "kb-24",
+        "kind": "near-duplicate",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-ultraview-32-pro",
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "manual-ultraview-27",
+          "manual-trailblazer-20k",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.8333,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 36
+      },
+      {
+        "id": "kb-25",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-soundbar-mini",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-halo-lamp"
+        ],
+        "first_expected_rank": null,
+        "top_score": 1.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 38
+      },
+      {
+        "id": "kb-26",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "manual-ultraview-32-pro",
+          "manual-aerofit-earbuds",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.75,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 30
+      },
+      {
+        "id": "kb-27",
+        "kind": "not-in-kb",
+        "caller_group": "support-agent",
+        "expected": [],
+        "ranked": [
+          "macro-goodwill-credit",
+          "manual-trailblazer-20k",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-shipping-delays",
+          "macro-processing-order-changes",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.5,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 46
+      },
+      {
+        "id": "kb-28",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "carrier-holiday-2026"
+        ],
+        "ranked": [
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "manual-powerhub-65w",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 35
+      },
+      {
+        "id": "kb-29",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 0.8333,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 34
+      },
+      {
+        "id": "kb-30",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-typemaster-tkl",
+          "manual-clearcast-webcam",
+          "manual-soundbar-mini"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 1.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 39
+      },
+      {
+        "id": "kb-31",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-cloudcomfort-mouse",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.5714,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 38
+      },
+      {
+        "id": "kb-32",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-airbeat-headphones",
+          "manual-glowcore-bulbs",
+          "manual-clearcast-webcam",
+          "carrier-eastvale-depot",
+          "manual-pocketbeat-mini",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.6429,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 36
+      },
+      {
+        "id": "kb-33",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-clearcast-webcam",
+          "carrier-holiday-2026",
+          "manual-powerhub-65w",
+          "manual-typemaster-tkl",
+          "carrier-holiday-2026",
+          "manual-glowcore-bulbs",
+          "carrier-holiday-2026"
+        ],
+        "first_expected_rank": null,
+        "top_score": 1.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": null,
+        "latency_ms": 39
+      }
+    ],
+    "hybrid+rerank": [
+      {
+        "id": "kb-01",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-trailblazer-20k"
+        ],
+        "ranked": [
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones",
+          "manual-powerhub-65w",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 4345
+      },
+      {
+        "id": "kb-02",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-goodwill-credit"
+        ],
+        "ranked": [
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-no-order-number",
+          "macro-shipping-delays",
+          "macro-safety-incidents",
+          "ops-recall-powerhub",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2873
+      },
+      {
+        "id": "kb-03",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-soundbar-mini"
+        ],
+        "ranked": [
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-soundbar-mini",
+          "manual-pocketbeat-mini",
+          "manual-soundbar-mini",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2617
+      },
+      {
+        "id": "kb-04",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "ops-recall-powerhub",
+          "ops-recall-powerhub",
+          "manual-powerhub-65w",
+          "past-tickets",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2753
+      },
+      {
+        "id": "kb-05",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-clearcast-webcam"
+        ],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2357
+      },
+      {
+        "id": "kb-06",
+        "kind": "single",
+        "caller_group": "customer",
+        "expected": [
+          "manual-cloudcomfort-mouse"
+        ],
+        "ranked": [
+          "manual-cloudcomfort-mouse",
+          "manual-glidetouch-trackpad",
+          "manual-ultraview-32-pro",
+          "manual-cloudcomfort-mouse",
+          "manual-cloudcomfort-mouse",
+          "manual-typemaster",
+          "manual-cloudcomfort-mouse",
+          "manual-trailblazer-20k",
+          "manual-cloudcomfort-mouse",
+          "manual-cloudcomfort-mouse"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2708
+      },
+      {
+        "id": "kb-07",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "ops-known-issue-halo-flicker"
+        ],
+        "ranked": [
+          "ops-known-issue-halo-flicker",
+          "manual-halo-lamp",
+          "past-tickets",
+          "ops-known-issue-aerofit-lite",
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "past-tickets",
+          "manual-glowcore-bulbs",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3069
+      },
+      {
+        "id": "kb-08",
+        "kind": "single",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-shipping-delays",
+          "past-tickets"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "past-tickets",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot",
+          "past-tickets",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2329
+      },
+      {
+        "id": "kb-09",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-glowcore-bulbs"
+        ],
+        "ranked": [
+          "manual-glowcore-bulbs",
+          "manual-glowcore-bulbs",
+          "help-warranty-replacement",
+          "manual-halo-lamp",
+          "manual-pocketbeat-mini",
+          "manual-clearcast-webcam",
+          "carrier-holiday-2026",
+          "manual-glowcore-bulbs",
+          "manual-typemaster-tkl",
+          "manual-glowcore-bulbs"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3086
+      },
+      {
+        "id": "kb-10",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-pocketbeat-mini"
+        ],
+        "ranked": [
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-trailblazer-20k",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-typemaster",
+          "manual-cloudcomfort-mouse",
+          "manual-aerofit-earbuds",
+          "manual-glidetouch-trackpad"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3202
+      },
+      {
+        "id": "kb-11",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "past-tickets"
+        ],
+        "ranked": [
+          "past-tickets",
+          "manual-ultraview-27",
+          "past-tickets",
+          "manual-ultraview-27",
+          "macro-shipping-delays",
+          "manual-ultraview-32-pro",
+          "macro-safety-incidents",
+          "manual-ultraview-27",
+          "past-tickets",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3313
+      },
+      {
+        "id": "kb-12",
+        "kind": "vocab-gap",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-aerofit-earbuds",
+          "past-tickets"
+        ],
+        "ranked": [
+          "past-tickets",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "help-warranty-replacement",
+          "ops-known-issue-aerofit-lite",
+          "manual-powerhub-65w",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2722
+      },
+      {
+        "id": "kb-13",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster"
+        ],
+        "ranked": [
+          "manual-typemaster",
+          "manual-typemaster",
+          "manual-ultraview-32-pro",
+          "manual-cloudcomfort-mouse",
+          "manual-powerhub-65w",
+          "manual-ultraview-32-pro",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-glidetouch-trackpad"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3490
+      },
+      {
+        "id": "kb-14",
+        "kind": "vocab-gap",
+        "caller_group": "customer",
+        "expected": [
+          "manual-halo-lamp"
+        ],
+        "ranked": [
+          "manual-halo-lamp",
+          "manual-powerhub-65w",
+          "manual-trailblazer-20k",
+          "manual-powerhub-65w",
+          "manual-trailblazer-20k",
+          "manual-powerhub-65w",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-lite",
+          "manual-glidetouch-trackpad",
+          "manual-trailblazer-20k"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 5.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3632
+      },
+      {
+        "id": "kb-15",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "carrier-eastvale-depot",
+          "macro-shipping-delays"
+        ],
+        "ranked": [
+          "macro-shipping-delays",
+          "past-tickets",
+          "past-tickets",
+          "carrier-eastvale-depot",
+          "carrier-eastvale-depot",
+          "macro-shipping-delays",
+          "carrier-eastvale-depot",
+          "macro-shipping-delays",
+          "macro-shipping-delays",
+          "macro-shipping-delays"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2841
+      },
+      {
+        "id": "kb-16",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "help-warranty-replacement",
+          "ops-known-issue-aerofit-lite"
+        ],
+        "ranked": [
+          "ops-known-issue-aerofit-lite",
+          "past-tickets",
+          "past-tickets",
+          "manual-aerofit-lite",
+          "past-tickets",
+          "manual-airbeat-headphones",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "ops-known-issue-halo-flicker",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 0.5
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3100
+      },
+      {
+        "id": "kb-17",
+        "kind": "multi-hop",
+        "caller_group": "support-agent",
+        "expected": [
+          "macro-safety-incidents",
+          "ops-recall-powerhub"
+        ],
+        "ranked": [
+          "ops-recall-powerhub",
+          "ops-recall-powerhub",
+          "macro-safety-incidents",
+          "manual-powerhub-65w",
+          "macro-safety-incidents",
+          "macro-safety-incidents",
+          "manual-powerhub-65w",
+          "manual-powerhub-65w",
+          "manual-trailblazer-20k",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3531
+      },
+      {
+        "id": "kb-18",
+        "kind": "multi-hop",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement",
+          "manual-ultraview-27"
+        ],
+        "ranked": [
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-27",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3146
+      },
+      {
+        "id": "kb-19",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-typemaster-tkl",
+          "manual-ultraview-27",
+          "manual-typemaster",
+          "manual-pocketbeat-mini",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2608
+      },
+      {
+        "id": "kb-20",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-earbuds"
+        ],
+        "ranked": [
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-pocketbeat-mini",
+          "manual-pocketbeat-mini",
+          "manual-typemaster",
+          "manual-typemaster-tkl"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2745
+      },
+      {
+        "id": "kb-21",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-ultraview-32-pro"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2927
+      },
+      {
+        "id": "kb-22",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-typemaster-tkl"
+        ],
+        "ranked": [
+          "manual-typemaster",
+          "manual-typemaster-tkl",
+          "manual-typemaster-tkl",
+          "manual-typemaster-tkl",
+          "manual-typemaster-tkl",
+          "manual-aerofit-earbuds",
+          "manual-ultraview-27",
+          "manual-typemaster",
+          "manual-airbeat-headphones",
+          "manual-ultraview-32-pro"
+        ],
+        "first_expected_rank": 2,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.5,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2819
+      },
+      {
+        "id": "kb-23",
+        "kind": "near-duplicate",
+        "caller_group": "customer",
+        "expected": [
+          "manual-aerofit-lite"
+        ],
+        "ranked": [
+          "manual-aerofit-lite",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-airbeat-headphones",
+          "manual-typemaster-tkl",
+          "manual-typemaster",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds",
+          "manual-aerofit-earbuds"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2981
+      },
+      {
+        "id": "kb-24",
+        "kind": "near-duplicate",
+        "caller_group": "support-agent",
+        "expected": [
+          "manual-ultraview-32-pro",
+          "past-tickets"
+        ],
+        "ranked": [
+          "manual-ultraview-32-pro",
+          "past-tickets",
+          "manual-ultraview-32-pro",
+          "manual-powerhub-65w",
+          "manual-ultraview-27",
+          "manual-trailblazer-20k",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-27",
+          "manual-ultraview-32-pro",
+          "past-tickets"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3134
+      },
+      {
+        "id": "kb-25",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-soundbar-mini",
+          "manual-clearcast-webcam",
+          "manual-clearcast-webcam",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-halo-lamp"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3355
+      },
+      {
+        "id": "kb-26",
+        "kind": "not-in-kb",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "help-warranty-replacement",
+          "carrier-holiday-2026",
+          "manual-ultraview-32-pro",
+          "manual-aerofit-earbuds",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3065
+      },
+      {
+        "id": "kb-27",
+        "kind": "not-in-kb",
+        "caller_group": "support-agent",
+        "expected": [],
+        "ranked": [
+          "macro-goodwill-credit",
+          "manual-trailblazer-20k",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit",
+          "macro-shipping-delays",
+          "macro-processing-order-changes",
+          "past-tickets",
+          "macro-goodwill-credit",
+          "macro-goodwill-credit"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2690
+      },
+      {
+        "id": "kb-28",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "carrier-holiday-2026"
+        ],
+        "ranked": [
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026",
+          "carrier-eastvale-depot",
+          "help-warranty-replacement",
+          "manual-powerhub-65w",
+          "help-warranty-replacement",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2514
+      },
+      {
+        "id": "kb-29",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-ultraview-32-pro",
+          "manual-ultraview-32-pro",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-27"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 4501
+      },
+      {
+        "id": "kb-30",
+        "kind": "stale-trap",
+        "caller_group": "customer",
+        "expected": [
+          "help-warranty-replacement"
+        ],
+        "ranked": [
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "manual-typemaster-tkl",
+          "manual-clearcast-webcam",
+          "manual-soundbar-mini"
+        ],
+        "first_expected_rank": 1,
+        "top_score": 10.0,
+        "scores": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0,
+          "recall@5": 1.0
+        },
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3625
+      },
+      {
+        "id": "kb-31",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-cloudcomfort-mouse",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "help-warranty-replacement",
+          "manual-trailblazer-20k",
+          "manual-trailblazer-20k",
+          "manual-airbeat-headphones"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 3194
+      },
+      {
+        "id": "kb-32",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-ultraview-27",
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-airbeat-headphones",
+          "manual-glowcore-bulbs",
+          "manual-clearcast-webcam",
+          "carrier-eastvale-depot",
+          "manual-pocketbeat-mini",
+          "carrier-eastvale-depot"
+        ],
+        "first_expected_rank": null,
+        "top_score": 0.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2641
+      },
+      {
+        "id": "kb-33",
+        "kind": "acl-trap",
+        "caller_group": "customer",
+        "expected": [],
+        "ranked": [
+          "help-warranty-replacement",
+          "manual-clearcast-webcam",
+          "manual-glowcore-bulbs",
+          "help-warranty-replacement",
+          "manual-ultraview-32-pro",
+          "carrier-holiday-2026",
+          "manual-powerhub-65w",
+          "manual-typemaster-tkl",
+          "carrier-holiday-2026",
+          "carrier-holiday-2026"
+        ],
+        "first_expected_rank": null,
+        "top_score": 5.0,
+        "scores": null,
+        "leaks": 0,
+        "stale_hits": 0,
+        "reranker": "llm gpt-4.1-mini",
+        "latency_ms": 2815
+      }
+    ]
+  }
+}

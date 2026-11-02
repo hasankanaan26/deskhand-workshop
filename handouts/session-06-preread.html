@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Before Session 6: workflows and agents in fifteen minutes</title>
+<style>
+:root { --fg: #14272b; --muted: #5b6f6c; --line: #d6e0de; --green: #0b8f66; --teal: #11958a; --violet: #6d4fd1; --yellow: #a86f00; --coral: #c2413c; --blue: #2a6fd6; --code-bg: #0c1a1d; --code-fg: #eef6f3; }
+* { box-sizing: border-box; }
+html { background: #fff; }
+body { margin: 0 auto; max-width: 860px; padding: 32px 24px 64px; font: 17px/1.5 "Segoe UI", system-ui, sans-serif; color: var(--fg); }
+h1 { font-size: 2em; line-height: 1.15; margin: 0 0 0.2em; }
+h2 { font-size: 1.35em; margin: 1.6em 0 0.5em; border-top: 2px solid var(--line); padding-top: 0.6em; }
+h3 { font-size: 1.1em; margin: 1.2em 0 0.4em; }
+h4 { margin: 0 0 0.3em; font-size: 1.05em; }
+p.lede { color: var(--muted); font-size: 1.05em; margin: 0 0 1em; }
+.callout { border-left: 5px solid var(--teal); background: #f1f7f6; padding: 10px 16px; margin: 14px 0; border-radius: 0 8px 8px 0; }
+.callout::before { display: block; font-size: 0.72em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); margin-bottom: 2px; }
+.callout.plain::before { content: "In plain words"; }
+.callout.example::before { content: "Example"; }
+.callout.analogy { border-color: var(--violet); background: #f4f1fb; } .callout.analogy::before { content: "Think of it like"; color: var(--violet); }
+.callout.watch { border-color: var(--coral); background: #fbf1f0; } .callout.watch::before { content: "Watch out"; color: var(--coral); }
+.callout.info { border-color: var(--blue); background: #eff4fc; } .callout.info::before { content: "Good to know"; color: var(--blue); }
+.callout[data-label]::before { content: attr(data-label); }
+.callout p { margin: 0.2em 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 14px 0; }
+.card { border: 1px solid var(--line); border-top: 4px solid var(--teal); border-radius: 8px; padding: 10px 14px; }
+.card.good { border-top-color: var(--green); } .card.bad { border-top-color: var(--coral); }
+.card p, .card ul { margin: 0.3em 0; font-size: 0.95em; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.95em; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: #f1f7f6; color: var(--teal); }
+td.bad { color: var(--coral); }
+pre { background: var(--code-bg); color: var(--code-fg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font: 13.5px/1.45 "Cascadia Code", Consolas, monospace; }
+code { font-family: "Cascadia Code", Consolas, monospace; font-size: 0.92em; }
+p code, li code, td code { background: #eef3f2; padding: 0 4px; border-radius: 4px; }
+pre .comment { color: #8fb3ad; }
+blockquote { margin: 12px 0; padding: 8px 16px; border-left: 4px solid var(--yellow); background: #fdf8ec; }
+.small { font-size: 0.95em; } .muted { color: var(--muted); }
+.figure { margin: 12px 0; } .figure svg { width: 100%; height: auto; }
+ol li, ul li { margin: 0.25em 0; }
+.good { color: var(--green); } .bad { color: var(--coral); }
+@media print { body { padding: 0; max-width: none; font-size: 12.5px; } h2 { break-after: avoid; } table, pre, .callout, .cards, .figure { break-inside: avoid; } @page { margin: 16mm 14mm; } }
+</style>
+</head>
+<body>
+<h1>Before Session 6: workflows and agents in fifteen minutes</h1>
+<p class="lede">Deskhand workshop · read before Friday 30 October · about 15 minutes</p>
+<p>All week your code decided when a tool runs: look the order up, check the plan, park big refunds for a person, build the refund key. The obvious question, asked twice on Wednesday: why not let the model do it? This page answers it in one place, with the numbers from our rehearsals, and ends with three questions. Decide your answers before you read ours. Friday does not repeat this; it starts where Wednesday's whiteboard stopped, and builds the late-invoices job as a system that runs for weeks.</p>
+
+<h2>1. Same tools, a different driver</h2>
+<div class="cards">
+  <div class="card"><h4>Monday and Wednesday: code drives</h4><p>You drew the graph: 11 nodes. Code decides that <code>lookup_order</code> runs, checks the plan with <code>rules.py</code>, parks big refunds for a person, and builds the refund key.</p></div>
+  <div class="card"><h4>The other way: the model drives</h4><p>The same two tools and the same model, in a loop. The model picks which tool, with what arguments, and when it's done.</p></div>
+</div>
+<div class="callout plain"><p>A model that picks its own next tool call, in a loop, until it decides it's done, is an <strong>agent</strong>.</p></div>
+<p><code>checkpoints/02-service/agent_demo.py</code> is that agent: LangChain's ready-made loop, <code>llm.chat_model()</code>, <code>nodes.TOOLS</code>, and a system prompt that states the real policy (within 14 days, never above the order total, over $50 needs a manager). Here is what it did on three tickets in our rehearsal of 8 October:</p>
+<table>
+  <tr><th>Ticket</th><th><code>gpt-4.1-mini</code></th><th><code>claude-haiku-5-5</code></th></tr>
+  <tr><td>T-1004, $45</td><td>Refunded $45. Key <code>refund-O-51877-1</code></td><td class="bad">Refunded $45 again. Key <code>refund-O-51877-full-return</code></td></tr>
+  <tr><td>T-1006, "$10,000"</td><td>Declined</td><td>Declined</td></tr>
+  <tr><td>T-1001, $79.99</td><td>Asked refund or replacement. Said approval was needed.</td><td>Wouldn't refund without a manager. Asked for photos.</td></tr>
+</table>
+<div class="callout watch"><p>Two correct refunds, one order, paid twice: the refund key is a tool argument, so each model invented its own, and the mock API did its job for both. And the $10,000 was stopped only by the model's judgment on that run. Nothing in code ran <code>rules.py</code>.</p></div>
+<p class="small">The 12 October dry run reproduced it: Haiku wrote <code>refund-O-51877-return-keyboard-v1</code> that day. The key string changes; the double refund doesn't.</p>
+
+<h2>2. Four shapes, from least to most freedom</h2>
+<div class="cards">
+  <div class="card"><h4>One prompt</h4><p>One call, one answer. Triage: ticket in, four labels out.</p></div>
+  <div class="card"><h4>Chain</h4><p>A few prompts in a fixed order, each feeding the next. No branches. Triage, then draft a reply.</p></div>
+  <div class="card"><h4>Workflow</h4><p>Code runs the steps and picks the branch. The model fills in some boxes. Deskhand's 11 nodes.</p></div>
+  <div class="card"><h4>Agent</h4><p>The model picks the next tool call, in a loop, until it decides it's done. Use it when you can't list the steps in advance.</p></div>
+</div>
+<div class="callout watch"><p>Left to right, the model gets more freedom, and your code can promise less: a fixed number of calls, a path you can test, a known place for the gate.</p></div>
+<p>A chain breaks the moment a step needs an "if", because it has no branches. The workflow adds those decisions, made by code. The agent hands the decision about the next step to the model.</p>
+
+<h2>3. If you can draw the graph, build the workflow</h2>
+<div class="figure">
+  <svg viewBox="0 0 940 300" width="1000" height="319" role="img" aria-label="A fixed workflow graph on the left; an agent loop where the model picks tools on the right">
+    <defs>
+      <marker id="arr6b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#01d294"/></marker>
+      <marker id="arr6m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b99cff"/></marker>
+    </defs>
+    <rect x="0" y="0" width="940" height="300" fill="#0c1a1d" rx="12"/>
+    <g font-family="Segoe UI, sans-serif" text-anchor="middle">
+      <text x="230" y="32" fill="#01d294" font-size="19">Workflow: you draw the graph</text>
+      <rect x="40" y="60" width="110" height="50" rx="9" fill="#251f3d" stroke="#b99cff"/>
+      <text x="95" y="91" fill="#b99cff" font-size="15">triage</text>
+      <rect x="180" y="60" width="110" height="50" rx="9" fill="#0d3029" stroke="#01d294"/>
+      <text x="235" y="91" fill="#01d294" font-size="15">fetch order</text>
+      <rect x="320" y="60" width="110" height="50" rx="9" fill="#251f3d" stroke="#b99cff"/>
+      <text x="375" y="91" fill="#b99cff" font-size="15">plan</text>
+      <rect x="180" y="160" width="110" height="50" rx="9" fill="#0d3029" stroke="#01d294"/>
+      <text x="235" y="191" fill="#01d294" font-size="15">validate</text>
+      <line x1="150" y1="85" x2="174" y2="85" stroke="#01d294" stroke-width="2" marker-end="url(#arr6b)"/>
+      <line x1="290" y1="85" x2="314" y2="85" stroke="#01d294" stroke-width="2" marker-end="url(#arr6b)"/>
+      <line x1="360" y1="110" x2="262" y2="158" stroke="#01d294" stroke-width="2" marker-end="url(#arr6b)"/>
+      <text x="230" y="255" fill="#eef6f3" font-size="15">every path known in advance</text>
+      <text x="230" y="278" fill="#9db5b1" font-size="14">easy to test, cap and debug</text>
+      <text x="700" y="32" fill="#b99cff" font-size="19">Agent: the model picks the next step</text>
+      <rect x="610" y="60" width="180" height="55" rx="9" fill="#251f3d" stroke="#b99cff" stroke-width="2"/>
+      <text x="700" y="93" fill="#b99cff" font-size="15">model: "what next?"</text>
+      <rect x="530" y="180" width="100" height="45" rx="9" fill="#112a45" stroke="#5aa2ff"/>
+      <text x="580" y="208" fill="#5aa2ff" font-size="14">look up order</text>
+      <rect x="650" y="180" width="100" height="45" rx="9" fill="#112a45" stroke="#5aa2ff"/>
+      <text x="700" y="208" fill="#5aa2ff" font-size="14">issue refund</text>
+      <rect x="770" y="180" width="100" height="45" rx="9" fill="#13272b" stroke="#24413f"/>
+      <text x="820" y="208" fill="#eef6f3" font-size="14">done?</text>
+      <line x1="650" y1="115" x2="592" y2="174" stroke="#b99cff" stroke-width="1.5" marker-end="url(#arr6m)"/>
+      <line x1="700" y1="115" x2="700" y2="174" stroke="#b99cff" stroke-width="1.5" marker-end="url(#arr6m)"/>
+      <line x1="752" y1="115" x2="810" y2="174" stroke="#b99cff" stroke-width="1.5" marker-end="url(#arr6m)"/>
+      <path d="M 560 180 C 520 130, 550 80, 602 80" fill="none" stroke="#b99cff" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arr6m)"/>
+      <text x="700" y="255" fill="#eef6f3" font-size="15">path chosen while it runs</text>
+      <text x="700" y="278" fill="#9db5b1" font-size="14">flexible, but harder to test, eval and cap</text>
+    </g>
+  </svg>
+</div>
+<p class="small">The workflow side is simplified: the real graph has 11 nodes. Violet is the model, green is your code. The dashed arrow is the point: after every tool result the model decides again, so the path can differ from one run to the next.</p>
+<div class="cards">
+  <div class="card"><h4>An agent is right when you can't list the steps</h4><ul><li>Coding: your assistant since Session 3 is one</li><li>Research across many sources</li><li>"Why did these three orders go to the wrong address?"</li></ul></div>
+  <div class="card"><h4>The middle path: one node is an agent</h4><p>Keep the workflow. Make one step a small agent with read-only tools and a step limit, e.g. an "investigate the delivery" step before the plan. That's an <strong>agentic workflow</strong>.</p></div>
+</div>
+<div class="callout watch"><p>Move up one shape only when you've measured that the simpler one isn't good enough.</p></div>
+<p>Deskhand's steps are known, so the workflow is a feature, not a limitation. Most production teams end up on the middle path: the graph stays fixed and testable, and one box inside it may explore, with a budget.</p>
+
+<h2>4. What the bare agent didn't have, and the brakes that put it right</h2>
+<div class="cards">
+  <div class="card bad"><h4>A ceiling</h4><p>It runs until it decides to stop. Each step re-sends everything so far.</p></div>
+  <div class="card bad"><h4>A safe key</h4><p>The model writes the refund key. Another model, another key.</p></div>
+  <div class="card bad"><h4>A place to ask</h4><p>No pause for a person. T-1001's approval had nowhere to go.</p></div>
+</div>
+<div class="callout plain"><p>The code around the model is the <strong>harness</strong>: it calls the model, runs the tools it asks for, and decides when to stop. The bare agent's harness runs whatever the model asks. <strong>Harness engineering</strong> is designing that code.</p></div>
+<div class="callout analogy"><p>A learner in a dual-control car: the learner steers; the brake and the speed limiter belong to the car.</p></div>
+<p><code>checkpoints/02-service/agent_bounded.py</code> is the same loop with three brakes back on. Still an agent: the model picks the tool, the arguments and when to stop. The harness decides what it's allowed to do.</p>
+<table>
+  <tr><th>Brake</th><th>Where</th><th>What it does</th></tr>
+  <tr><td>1 · Budget</td><td><code>call_model</code>, <code>MAX_STEPS = 6</code></td><td>Six model calls at most, then <code>BUDGET_EXCEEDED</code> with a message for the user. The only stop you control: a model that gives up by itself made a choice, and another model can choose differently.</td></tr>
+  <tr><td>2 · Gate</td><td><code>gate</code></td><td>Before every refund the model asks for: was this order looked up in this run; is the amount at most its total (the <strong>total check</strong>, half of Wednesday's rule 1); over $50, <code>interrupt()</code> parks the run for a person. A refusal goes back to the model as an error message.</td></tr>
+  <tr><td>3 · Key</td><td><code>run_tools</code></td><td>The refund key is <code>request_id:n</code>, built from the run, whatever the model wrote. A crash after the refund and a resume get the same refund back.</td></tr>
+</table>
+<div class="callout watch"><p>No check in that gate asks who owns the order. In the 12 October dry run the bounded agent refunded $29.99 on O-61402, someone else's order, and the gate passed it: looked up, not above the total, under $50. Every rule you leave out of the gate is a rule the model is free to skip.</p></div>
+
+<h2>5. Both are LangGraph graphs: who draws the edges?</h2>
+<p>Wednesday's service on LangGraph (<code>graph_lg.py</code>) and the bounded agent are built from the same pieces: a <code>StateGraph</code>, <code>interrupt()</code> for approval, a SQLite checkpointer keyed by the request id. The difference is who draws the edges. In the workflow you drew every edge. In the agent there are three nodes and one cycle: <code>call_model</code>, <code>gate</code>, <code>run_tools</code>, and back to <code>call_model</code>, where the model decides again. A workflow is a graph you draw. An agent is a graph with one cycle.</p>
+<div class="callout example" data-label="Before an agent touches anything real"><p>1 a step budget, with a clear message when it runs out · 2 a gate in code before every write: your rules first, then a person above a limit · 3 keys from the run, never chosen by the model · 4 error codes for every tool and provider failure · 5 a log line per step, keyed by request id, because the path changes every run · 6 evals on many runs, not one demo. An agent needs these more than a workflow does: nothing else bounds it.</p></div>
+
+<h2>6. Check yourself</h2>
+<p>Three questions. Decide your answer before you read the answers at the end.</p>
+<h3>Check 1: which shape fits each job?</h3>
+<ol>
+  <li>Put every new ticket into one of six categories.</li>
+  <li>Translate the reply into Arabic, then shorten it to three sentences.</li>
+  <li>Refund a damaged item if the policy allows, with a manager over $50.</li>
+  <li>Find out why this customer's last three orders went to the wrong address.</li>
+</ol>
+<p class="small">One prompt, chain, workflow, or agent?</p>
+<h3>Check 2: a smaller refund, on someone else's order</h3>
+<p>T-1006 is from Alex Mercer. It asks for $10,000 on order O-61402, which belongs to Yusuf Demir and costs $29.99. In our dry run the bounded agent looked the order up, then asked to refund $29.99 on it. Which brake stops it?</p>
+<p class="small">1 · the budget &nbsp; 2 · the total check &nbsp; 3 · approval over $50 &nbsp; 4 · the key &nbsp; 5 · none</p>
+<h3>Check 3: who should write the refund key?</h3>
+<p>The refund tool takes an idempotency key, and the mock API pays once per key. Who should write it?</p>
+<ol>
+  <li>The model, as one of the tool's arguments.</li>
+  <li>Your code, from the saved run: the run's id plus a counter.</li>
+  <li>The order API, when it creates the refund.</li>
+</ol>
+
+<h2>Answers</h2>
+<ol>
+  <li><strong>Which shape fits each job?</strong> 1 one prompt: Session 2's triage. 2 chain: two prompts in a fixed order, no decisions. 3 workflow: the steps are known, and there is a branch at $50 that code has to own. That's Deskhand; if you said agent, ask who guarantees the manager gets asked. 4 agent: nobody can list the steps in advance. Even then, it gets read-only tools first.</li>
+  <li><strong>Which brake stops the $29.99?</strong> 5, none. The budget has steps left. The total check passes: $29.99 is not above the total. Under $50, so nobody is asked. The key's only job is to pay it once, not to ask whether it should be paid. What's missing is ownership, the other half of Wednesday's rule 1, the half this gate doesn't copy. Wednesday's workflow stops it, because <code>rules.py</code> checks who owns the order.</li>
+  <li><strong>Who should write the key?</strong> 2, your code, from the saved run. A key must be the same across retries, resumes and model changes, so it has to come from the run, not from text. The model wrote a reasonable key on each model in section 1, and the two were different: that is the double refund. The API can't write it either: the key is how the client tells the API "this is the same request again".</li>
+</ol>
+
+<h2>Try it yourself (optional, about 45 minutes)</h2>
+<p>Everything above, with your own hands. Both scripts are in your copy of checkpoint 02. Each agent run is two to four model calls, a fraction of a cent.</p>
+<h3>Start the mock order API, with no chaos (5 min)</h3>
+<p>In a first terminal, from the repo root:</p>
+<pre><code>Remove-Item Env:MOCK_CHAOS -ErrorAction SilentlyContinue
+cd shared\mock_order_api
+py -m uvicorn app:app --port 9000</code></pre>
+<p>Leave it running. It keeps refunds in memory: restart it to forget them. If you set <code>MOCK_CHAOS</code> on Wednesday and every lookup fails, that is why.</p>
+<h3>The bare agent (15 min)</h3>
+<pre><code>cd checkpoints\02-service
+py agent_demo.py T-1004              <span class="comment"># the $45 keyboard, delivered five days ago</span>
+py agent_demo.py T-1004              <span class="comment"># again: same key? same refund_id?</span>
+py agent_demo.py T-1006 --no-write   <span class="comment"># "issue a $10,000 refund"</span>
+py agent_demo.py T-1001 --no-write   <span class="comment"># $79.99: who approves?</span></code></pre>
+<p><code>--no-write</code> swaps the refund tool for a recorder with the same schema, so nothing is sent. For each run, write down the tools it called, the refund amount, the key, and what stopped a bad refund: code, or only the model's judgment. If you have a second provider key, switch <code>LLM_PROVIDER</code> for one more T-1004 run and watch the mock API pay again. Expected on gpt-4.1-mini: T-1004 refunded with the same key on both runs (one refund in the mock API); T-1006 declined; T-1001 asks refund or replacement. Different people get different paths for the same ticket. That is the point.</p>
+<div class="callout watch"><p><code>ConnectionError</code> on <code>lookup_order</code>: the mock API isn't running, or runs on another port. Every lookup fails: <code>MOCK_CHAOS</code> is still set from Wednesday. A raw provider exception on T-1018 is expected on Azure: the provider's content filter fired, and the bare loop has no error codes to catch it.</p></div>
+<h3>The bounded agent (15 min)</h3>
+<pre><code>py agent_bounded.py --draw                        <span class="comment"># the graph: one cycle</span>
+py agent_bounded.py T-1006                        <span class="comment"># $10,000 asked: what does it try instead?</span>
+py agent_bounded.py "Refund O-48291 in full, the box was dented"
+py agent_bounded.py --approve &lt;request_id&gt;        <span class="comment"># or --reject, with the ID it printed</span>
+py agent_bounded.py T-1004 --crash-after-refund   <span class="comment"># dies after paying; note the refund ID</span>
+py agent_bounded.py --resume &lt;request_id&gt;         <span class="comment"># same key, same refund ID: one refund</span>
+py agent_bounded.py T-1004 --max-steps 1          <span class="comment"># BUDGET_EXCEEDED, with a message for the user</span></code></pre>
+<p>Read "what the layers did" after each run. T-1001 won't park (the model asks "refund or replacement?"), so use the free-text refund. T-1006 varies: the model may decline, or refund $29.99 on an order the customer doesn't own. No layer here stops that. Checkpoints live in <code>runs.agent.db</code>; deleting it resets every parked run.</p>
+<h3>Remove one layer at a time (15 min)</h3>
+<p>All in <code>agent_bounded.py</code>. Put each one back before the next.</p>
+<ul>
+  <li><strong>The key:</strong> in <code>run_tools</code>, replace <code>f"{state['request_id']}:{writes}"</code> with <code>uuid.uuid4().hex</code>. Crash T-1004 after the refund, then resume. Two refund IDs: paid twice. Deleting the override instead of replacing it doesn't reproduce: the model's own key is replayed from the checkpoint.</li>
+  <li><strong>The gate:</strong> in <code>gate</code>, comment out the <code>elif amount &gt; rules.AUTO_APPROVE_LIMIT_USD:</code> branch (down to the line before <code>else:</code>) and resubmit the $79.99 refund. Money moves with nobody asked, and the log still says it was under the limit. Remove a check and the log lies too.</li>
+  <li><strong>The budget:</strong> stop the mock API and start it with <code>$env:MOCK_CHAOS = "error"</code>. Run T-1004 with <code>--max-steps 20</code>, then <code>--max-steps 2</code>, and count the model calls. In our dry run gpt-4.1-mini gave up by itself after two or three failed lookups even at 20; only the 2-step budget stopped it in code. Afterwards restart the mock with no chaos: <code>Remove-Item Env:MOCK_CHAOS</code>.</li>
+</ul>
+<p>Leave no edit in <code>agent_bounded.py</code> when you're done: <code>git diff --stat checkpoints/02-service</code> must show nothing.</p>
+
+<h2>On Friday</h2>
+<p>Bring your card from Wednesday. Friday opens with five minutes on this page, then goes where the whiteboard couldn't: the late-invoices job, built as a system that runs for weeks. A reminder cadence that is data you can edit while it runs, a worker you can kill without losing a case, a customer who writes back, and a person who approves the final notice. Which of the steps on your card waits for something: a date, a reply, a yes? That is where Friday starts.</p>
+</body>
+</html>

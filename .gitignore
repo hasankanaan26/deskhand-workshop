@@ -15,12 +15,17 @@ build/
 .env
 
 # Local state
+# Session 6's live build: a disposable copy made by dunning/live/start.py
+dunning-live/
+triage-live/
 *.db
 *.db-shm
 *.db-wal
 qdrant_data/
 logs/
 checkpoints/*/evals/*results.json
+# kb_retrieval_metrics.py writes one JSON per run; kb_baseline.json is tracked
+checkpoints/03-rag/evals/runs/
 # run_evals.py --only writes here (a subset, never the release gate)
 checkpoints/*/evals/results.subset.json
 # DeepEval's cache and test-run files (its pytest plugin creates the folder)

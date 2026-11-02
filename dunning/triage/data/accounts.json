@@ -1,0 +1,131 @@
+{
+  "now": "2026-11-16T09:00:00Z",
+  "currency": "USD",
+  "accounts": [
+    {
+      "account_id": "A-01", "name": "Acme Corp", "contact_email": "ap@acme.example",
+      "invoices": [
+        {"invoice_id": "INV-2041", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 240.00, "balance_usd": 240.00, "items": [
+          {"item_ref": "DK-110", "description": "USB-C docking station", "amount_usd": 180.00},
+          {"item_ref": "CB-020", "description": "HDMI cable, 2 m (x2)", "amount_usd": 60.00}]},
+        {"invoice_id": "INV-2049", "status": "open", "issued": "2026-10-21", "due": "2026-11-20",
+         "amount_usd": 480.00, "balance_usd": 480.00, "items": [
+          {"item_ref": "MN-270", "description": "27-inch monitor (x2)", "amount_usd": 480.00}]},
+        {"invoice_id": "INV-1990", "status": "closed", "issued": "2026-08-01", "due": "2026-08-31",
+         "amount_usd": 150.00, "balance_usd": 0.00, "items": [
+          {"item_ref": "KB-050", "description": "Wireless keyboard (x3)", "amount_usd": 150.00}]}
+      ],
+      "unmatched_payments": [
+        {"payment_id": "PAY-7781", "received": "2026-11-13", "amount_usd": 240.00,
+         "reference": "ACME-OCT-240", "invoice_hint": "INV-2041"}
+      ]
+    },
+    {
+      "account_id": "A-02", "name": "Globex", "contact_email": "accounts@globex.example",
+      "invoices": [
+        {"invoice_id": "INV-2047", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 180.00, "balance_usd": 180.00, "items": [
+          {"item_ref": "KB-050", "description": "Wireless keyboard", "amount_usd": 60.00},
+          {"item_ref": "MS-030", "description": "Wireless mouse (x2)", "amount_usd": 60.00},
+          {"item_ref": "HS-300", "description": "Noise-cancelling headset", "amount_usd": 60.00}]},
+        {"invoice_id": "INV-2058", "status": "open", "issued": "2026-10-14", "due": "2026-11-13",
+         "amount_usd": 120.00, "balance_usd": 120.00, "items": [
+          {"item_ref": "WC-100", "description": "1080p webcam (x2)", "amount_usd": 120.00}]}
+      ],
+      "unmatched_payments": []
+    },
+    {
+      "account_id": "A-03", "name": "Initech", "contact_email": "finance@initech.example",
+      "invoices": [
+        {"invoice_id": "INV-2052", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 95.00, "balance_usd": 95.00, "items": [
+          {"item_ref": "TN-410", "description": "Laser toner cartridge", "amount_usd": 95.00}]},
+        {"invoice_id": "INV-1975", "status": "closed", "issued": "2026-07-20", "due": "2026-08-19",
+         "amount_usd": 95.00, "balance_usd": 0.00, "items": [
+          {"item_ref": "TN-410", "description": "Laser toner cartridge", "amount_usd": 95.00}]}
+      ],
+      "unmatched_payments": []
+    },
+    {
+      "account_id": "A-04", "name": "Umbrella SA", "contact_email": "billing@umbrella.example",
+      "invoices": [
+        {"invoice_id": "INV-2060", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 1250.00, "balance_usd": 1250.00, "items": [
+          {"item_ref": "LT-14", "description": "14-inch laptop (x2)", "amount_usd": 1200.00},
+          {"item_ref": "SV-SETUP", "description": "Setup and imaging", "amount_usd": 50.00}]},
+        {"invoice_id": "INV-2068", "status": "open", "issued": "2026-10-24", "due": "2026-11-23",
+         "amount_usd": 640.00, "balance_usd": 640.00, "items": [
+          {"item_ref": "TB-10", "description": "10-inch tablet (x4), first batch", "amount_usd": 640.00}]},
+        {"invoice_id": "INV-2069", "status": "open", "issued": "2026-10-31", "due": "2026-11-30",
+         "amount_usd": 640.00, "balance_usd": 640.00, "items": [
+          {"item_ref": "TB-10", "description": "10-inch tablet (x4), second batch", "amount_usd": 640.00}]}
+      ],
+      "unmatched_payments": [
+        {"payment_id": "PAY-7790", "received": "2026-11-12", "amount_usd": 1250.00,
+         "reference": "UMB 55120", "invoice_hint": null}
+      ]
+    },
+    {
+      "account_id": "A-05", "name": "Hooli", "contact_email": "ap@hooli.example",
+      "invoices": [
+        {"invoice_id": "INV-1988", "status": "open", "issued": "2026-09-27", "due": "2026-10-27",
+         "amount_usd": 540.00, "balance_usd": 540.00, "items": [
+          {"item_ref": "RK-12U", "description": "12U server rack", "amount_usd": 420.00},
+          {"item_ref": "PD-8", "description": "Rack power strip (x2)", "amount_usd": 120.00}]},
+        {"invoice_id": "INV-2080", "status": "open", "issued": "2026-11-06", "due": "2026-12-06",
+         "amount_usd": 900.00, "balance_usd": 900.00, "items": [
+          {"item_ref": "NAS-4", "description": "4-bay network storage", "amount_usd": 700.00},
+          {"item_ref": "HD-8T", "description": "8 TB drive (x2)", "amount_usd": 200.00}]}
+      ],
+      "unmatched_payments": [
+        {"payment_id": "PAY-7802", "received": "2026-10-30", "amount_usd": 540.00,
+         "reference": "HOOLI-RACK", "invoice_hint": "INV-1988"}
+      ]
+    },
+    {
+      "account_id": "A-06", "name": "Koala Freight", "contact_email": "payables@koalafreight.example",
+      "invoices": [
+        {"invoice_id": "INV-2066", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 2400.00, "balance_usd": 2400.00, "items": [
+          {"item_ref": "RT-8", "description": "Rugged 8-inch tablet (x4)", "amount_usd": 2000.00},
+          {"item_ref": "VD-8", "description": "Vehicle dock (x4)", "amount_usd": 400.00}]},
+        {"invoice_id": "INV-2030", "status": "closed", "issued": "2026-08-10", "due": "2026-09-30",
+         "amount_usd": 310.00, "balance_usd": 0.00, "items": [
+          {"item_ref": "SC-2D", "description": "Barcode scanner (x2)", "amount_usd": 310.00}]}
+      ],
+      "unmatched_payments": []
+    },
+    {
+      "account_id": "A-07", "name": "Northwind Traders", "contact_email": "billing@northwind.example",
+      "invoices": [
+        {"invoice_id": "INV-2071", "status": "open", "issued": "2026-10-12", "due": "2026-11-11",
+         "amount_usd": 130.00, "balance_usd": 130.00, "items": [
+          {"item_ref": "SP-20", "description": "Desk speakers", "amount_usd": 130.00}]},
+        {"invoice_id": "INV-2075", "status": "open", "issued": "2026-10-19", "due": "2026-11-18",
+         "amount_usd": 480.00, "balance_usd": 480.00, "items": [
+          {"item_ref": "MN-270", "description": "27-inch monitor (x2)", "amount_usd": 420.00},
+          {"item_ref": "MA-2", "description": "Dual monitor arm", "amount_usd": 60.00}]}
+      ],
+      "unmatched_payments": [
+        {"payment_id": "PAY-7815", "received": "2026-11-13", "amount_usd": 480.00,
+         "reference": "NW-88213", "invoice_hint": "INV-2071"}
+      ]
+    },
+    {
+      "account_id": "A-08", "name": "Contoso", "contact_email": "finance@contoso.example",
+      "invoices": [
+        {"invoice_id": "INV-2078", "status": "open", "issued": "2026-10-07", "due": "2026-11-06",
+         "amount_usd": 880.00, "balance_usd": 880.00, "items": [
+          {"item_ref": "DK-110", "description": "USB-C docking station (x10)", "amount_usd": 880.00}]},
+        {"invoice_id": "INV-2083", "status": "open", "issued": "2026-10-21", "due": "2026-11-20",
+         "amount_usd": 300.00, "balance_usd": 300.00, "items": [
+          {"item_ref": "WAR-3Y", "description": "3-year extended warranty, docking stations", "amount_usd": 300.00}]},
+        {"invoice_id": "INV-2012", "status": "closed", "issued": "2026-08-14", "due": "2026-10-04",
+         "amount_usd": 220.00, "balance_usd": 0.00, "items": [
+          {"item_ref": "MS-030", "description": "Wireless mouse (x4)", "amount_usd": 220.00}]}
+      ],
+      "unmatched_payments": []
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "_usage": [
+    "Deskhand's read tools for Claude Code (Session 7, agents at work). Copy this file to the REPO ROOT as .mcp.json and start Claude Code there: the paths below are relative to it.",
+    "Before starting: the mock order API is up on :9000, `py kb_ingest.py` has built the kb collection, and the lab's 03 service is STOPPED. Qdrant local mode opens qdrant_data/ in one process at a time; this server holds it from its first search_kb call until Claude Code exits.",
+    "In Claude Code: approve the project server when asked, check /mcp shows deskhand connected, then ask e.g. 'Use deskhand to look up order O-48291 and find how to reset its headphones.'",
+    "DESKHAND_MCP_CALLER_GROUP is who this server searches as: customer (the default when unset) or support-agent. It is set here, by whoever launches the server, never by the model: search_kb has no group argument. lookup_order needs support-agent.",
+    "To show the access filter: set it to customer, restart Claude Code, and ask for the goodwill credit limit. The macro does not come back. Before restarting the lab, quit Claude Code or disable the server in /mcp.",
+    "Claude Code ignores this _usage key."
+  ],
+  "mcpServers": {
+    "deskhand": {
+      "type": "stdio",
+      "command": ".venv/Scripts/python.exe",
+      "args": ["checkpoints/03-rag/mcp_server.py"],
+      "env": {
+        "DESKHAND_MCP_CALLER_GROUP": "support-agent"
+      }
+    }
+  }
+}
